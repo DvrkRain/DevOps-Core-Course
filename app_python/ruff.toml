@@ -1,6 +1,19 @@
 # Ruff configuration for DevOps Info Service
 # https://docs.astral.sh/ruff/
 
+# Set line length to match formatter
+line-length = 100
+
+exclude = [
+    ".git",
+    ".venv",
+    "venv",
+    "__pycache__",
+    "build",
+    "dist",
+    "*.egg-info"
+]
+
 # Enable pycodestyle (E), Pyflakes (F), and other rules
 [lint]
 select = [
@@ -17,6 +30,7 @@ select = [
 # Ignore specific rules if needed
 ignore = [
     "E501",  # Line too long (handled by formatter)
+    "E402",  # Module level import not at top of file
 ]
 
 # Exclude specific directories
@@ -30,15 +44,9 @@ exclude = [
     "*.egg-info",
 ]
 
-# Set line length to match formatter
-line-length = 100
-
 [format]
 # Use double quotes for strings
 quote-style = "double"
 
 # Indent with 4 spaces
 indent-style = "space"
-
-# Set line length
-line-length = 100

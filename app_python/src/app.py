@@ -1,13 +1,13 @@
-import os
-import socket
-import platform
 import logging
+import os
+import platform
+import socket
 from datetime import datetime, timezone
-from typing import Dict, Any
+from typing import Any
 
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 # Configuration from environment variables
 HOST = os.getenv("HOST", "0.0.0.0")
@@ -46,13 +46,13 @@ app.add_middleware(
 START_TIME = datetime.now(timezone.utc)
 
 
-def get_uptime() -> Dict[str, Any]:
+def get_uptime() -> dict[str, Any]:
     """Calculate application uptime."""
     delta = datetime.now(timezone.utc) - START_TIME
     seconds = int(delta.total_seconds())
     hours = seconds // 3600
     minutes = (seconds % 3600) // 60
-    
+
     return {
         "seconds": seconds,
         "human": f"{hours} hours, {minutes} minutes"
@@ -60,15 +60,15 @@ def get_uptime() -> Dict[str, Any]:
 
 
 @app.get("/", response_class=JSONResponse)
-async def get_service_information(request: Request) -> Dict[str, Any]:
+async def get_service_information(request: Request) -> dict[str, Any]:
     """
     Main endpoint - returns comprehensive service and system information.
     """
     logger.info(f"Request received: {request.method} {request.url.path}")
-    
+
     # Collect all information
     uptime_info = get_uptime()
-    
+
     # Prepare response
     response = {
         "service": {
@@ -104,17 +104,17 @@ async def get_service_information(request: Request) -> Dict[str, Any]:
             {"path": "/redoc", "method": "GET", "description": "ReDoc documentation"}
         ]
     }
-    
+
     return response
 
 
 @app.get("/health", response_class=JSONResponse)
-async def health_check() -> Dict[str, Any]:
+async def health_check() -> dict[str, Any]:
     """
     Health check endpoint for monitoring and Kubernetes probes.
     """
     uptime_info = get_uptime()
-    
+
     return {
         "status": "healthy",
         "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -150,10 +150,10 @@ async def internal_error_handler(request: Request, exc):
 
 if __name__ == "__main__":
     import uvicorn
-    
+
     logger.info(f"Starting DevOps Info Service on {HOST}:{PORT}")
     logger.info(f"Debug mode: {DEBUG}")
-    
+
     uvicorn.run(
         "app:app",
         host=HOST,
