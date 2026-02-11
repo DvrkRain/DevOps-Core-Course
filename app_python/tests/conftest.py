@@ -17,7 +17,7 @@ from app import app
 def client():
     """
     Create a FastAPI TestClient for testing endpoints.
-    
+
     This fixture provides a test client that can be used to make
     HTTP requests to the FastAPI application without running a server.
     """
