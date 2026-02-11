@@ -20,7 +20,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
 # Copy the application code
-COPY app.py .
+COPY src/ .
 
 # Changing the file owner to appuser
 RUN chown -R appuser:appuser /app
