@@ -135,7 +135,7 @@ Required test coverage of 80.0% reached. Total coverage: 95.12%
 ### GitHub Actions Workflow Run
 
 **Link to successful workflow run:** 
-- *[To be added after first successful CI run]*
+- [GitHub Successful Workflow](https://github.com/DvrkRain/DevOps-Core-Course/actions/runs/21915231409)
 
 **Expected workflow steps:**
 1. ✅ Test & Lint Job
