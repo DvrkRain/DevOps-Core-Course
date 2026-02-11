@@ -8,7 +8,6 @@ Tests cover:
 """
 
 
-
 class TestServiceInfoEndpoint:
     """Tests for the main service information endpoint (GET /)."""
 
@@ -57,7 +56,7 @@ class TestServiceInfoEndpoint:
             "platform_version",
             "architecture",
             "cpu_count",
-            "python_version"
+            "python_version",
         ]
 
         for field in required_fields:
@@ -75,12 +74,7 @@ class TestServiceInfoEndpoint:
         response = client.get("/")
         runtime = response.json()["runtime"]
 
-        required_fields = [
-            "uptime_seconds",
-            "uptime_human",
-            "current_time",
-            "timezone"
-        ]
+        required_fields = ["uptime_seconds", "uptime_human", "current_time", "timezone"]
 
         for field in required_fields:
             assert field in runtime, f"Missing field: {field}"

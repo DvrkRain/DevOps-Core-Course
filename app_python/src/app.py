@@ -18,9 +18,7 @@ DEBUG = os.getenv("DEBUG", "True").lower() == "true"
 logging.basicConfig(
     level=logging.DEBUG if DEBUG else logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[
-        logging.StreamHandler()
-    ]
+    handlers=[logging.StreamHandler()],
 )
 logger = logging.getLogger(__name__)
 
@@ -30,7 +28,7 @@ app = FastAPI(
     version="1.0.0",
     description="Service providing system information and health status",
     docs_url="/docs",
-    redoc_url="/redoc"
+    redoc_url="/redoc",
 )
 
 # CORS middleware (optional, useful for web frontend later)
@@ -53,10 +51,7 @@ def get_uptime() -> dict[str, Any]:
     hours = seconds // 3600
     minutes = (seconds % 3600) // 60
 
-    return {
-        "seconds": seconds,
-        "human": f"{hours} hours, {minutes} minutes"
-    }
+    return {"seconds": seconds, "human": f"{hours} hours, {minutes} minutes"}
 
 
 @app.get("/", response_class=JSONResponse)
@@ -75,7 +70,7 @@ async def get_service_information(request: Request) -> dict[str, Any]:
             "name": "devops-info-service",
             "version": "1.0.0",
             "description": "DevOps course info service",
-            "framework": "FastAPI"
+            "framework": "FastAPI",
         },
         "system": {
             "hostname": socket.gethostname(),
@@ -83,26 +78,26 @@ async def get_service_information(request: Request) -> dict[str, Any]:
             "platform_version": platform.version(),
             "architecture": platform.machine(),
             "cpu_count": os.cpu_count() or 0,
-            "python_version": platform.python_version()
+            "python_version": platform.python_version(),
         },
         "runtime": {
             "uptime_seconds": uptime_info["seconds"],
             "uptime_human": uptime_info["human"],
             "current_time": datetime.now(timezone.utc).isoformat(),
-            "timezone": "UTC"
+            "timezone": "UTC",
         },
         "request": {
             "client_ip": request.client.host if request.client else "unknown",
             "user_agent": request.headers.get("user-agent", "unknown"),
             "method": request.method,
-            "path": request.url.path
+            "path": request.url.path,
         },
         "endpoints": [
             {"path": "/", "method": "GET", "description": "Service information"},
             {"path": "/health", "method": "GET", "description": "Health check"},
             {"path": "/docs", "method": "GET", "description": "OpenAPI documentation"},
-            {"path": "/redoc", "method": "GET", "description": "ReDoc documentation"}
-        ]
+            {"path": "/redoc", "method": "GET", "description": "ReDoc documentation"},
+        ],
     }
 
     return response
@@ -118,7 +113,7 @@ async def health_check() -> dict[str, Any]:
     return {
         "status": "healthy",
         "timestamp": datetime.now(timezone.utc).isoformat(),
-        "uptime_seconds": uptime_info["seconds"]
+        "uptime_seconds": uptime_info["seconds"],
     }
 
 
@@ -131,8 +126,8 @@ async def not_found_handler(request: Request, exc):
         content={
             "error": "Not Found",
             "message": f"The requested endpoint {request.url.path} does not exist",
-            "available_endpoints": ["/", "/health", "/docs", "/redoc"]
-        }
+            "available_endpoints": ["/", "/health", "/docs", "/redoc"],
+        },
     )
 
 
@@ -144,9 +139,10 @@ async def internal_error_handler(request: Request, exc):
         status_code=500,
         content={
             "error": "Internal Server Error",
-            "message": "An unexpected error occurred. Please try again later."
-        }
+            "message": "An unexpected error occurred. Please try again later.",
+        },
     )
+
 
 if __name__ == "__main__":
     import uvicorn
@@ -155,9 +151,5 @@ if __name__ == "__main__":
     logger.info(f"Debug mode: {DEBUG}")
 
     uvicorn.run(
-        "app:app",
-        host=HOST,
-        port=PORT,
-        reload=DEBUG,
-        log_level="debug" if DEBUG else "info"
+        "app:app", host=HOST, port=PORT, reload=DEBUG, log_level="debug" if DEBUG else "info"
     )
