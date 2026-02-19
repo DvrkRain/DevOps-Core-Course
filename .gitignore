@@ -3,3 +3,21 @@ test
 .pytest_cache/
 __pycache__
 .ruff_cache/
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+terraform.tfvars
+*.tfvars
+*.tfvars.json
+
+# Pulumi (stack files Pulumi.<stack>.yaml are in pulumi/.gitignore)
+pulumi/venv/
+.pulumi/
+
+# Credentials and keys
+*.pem
+*.key
+credentials

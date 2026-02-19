@@ -1,0 +1,8 @@
+# Copy to terraform.tfvars and fill in (terraform.tfvars is gitignored)
+# Do NOT commit real values or private key paths.
+
+vps_host             = "45.38.143.11"
+ssh_user             = "root"   # or ubuntu / your VPS user
+ssh_private_key_path = "C:/Users/YOUR_USERNAME/.ssh/id_ed25519_devops"  # Windows path to your private key
+ssh_port             = 22
+project_name         = "devops-lab04"
