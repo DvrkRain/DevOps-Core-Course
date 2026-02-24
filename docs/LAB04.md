@@ -6,7 +6,7 @@ This lab uses **only your existing VPS** (no cloud provider). Terraform and Pulu
 
 ## 1. VPS & Infrastructure
 
-- **Target:** Single VPS 45.38.143.11, Ubuntu 24.04 LTS, 1 CPU, 2GB RAM, 20GB storage.
+- **Target:** Single VPS, Ubuntu 24.04 LTS, 1 CPU, 2GB RAM, 20GB storage.
 - **No cloud provider:** Using only my VPS; no AWS or other cloud. All provisioning is done via SSH to this host.
 - **Cost:** Existing VPS cost only; no extra cloud charges.
 - **Resources configured (list):**

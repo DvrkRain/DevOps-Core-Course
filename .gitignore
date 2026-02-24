@@ -3,6 +3,7 @@ test
 .pytest_cache/
 __pycache__
 .ruff_cache/
+ignore/
 
 # Terraform
 *.tfstate
@@ -21,3 +22,9 @@ pulumi/venv/
 *.pem
 *.key
 credentials
+
+# Ansible
+*.retry
+.vault_pass
+ansible/inventory/*.pyc
+__pycache__/
