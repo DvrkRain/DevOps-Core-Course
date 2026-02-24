@@ -1,0 +1,13 @@
+---
+# Docker Hub credentials
+# Use a Docker Hub Access Token (not your password) — generate at:
+# https://hub.docker.com/settings/security → New Access Token
+dockerhub_username: timursalakhov
+dockerhub_password: <your-dockerhub-access-token>
+
+# Application configuration
+app_name: devops-info-service
+docker_image: "timursalakhov/devops-info-service"
+docker_image_tag: latest
+app_port: 5000
+app_container_name: devops-app
