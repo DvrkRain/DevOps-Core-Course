@@ -36,8 +36,10 @@ jobs:
           ansible-galaxy collection install -r ansible/requirements.yml
 
       - name: Write vault password file
+        env:
+          VAULT_PASS: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
         run: |
-          echo "${{ secrets.ANSIBLE_VAULT_PASSWORD }}" > ~/.vault_pass_lab05
+          printf '%s' "$VAULT_PASS" > ~/.vault_pass_lab05
           chmod 600 ~/.vault_pass_lab05
 
       - name: Run ansible-lint
@@ -69,15 +71,19 @@ jobs:
           ansible-galaxy collection install -r ansible/requirements.yml
 
       - name: Setup SSH key
+        env:
+          SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519_devops
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_ed25519_devops
           chmod 600 ~/.ssh/id_ed25519_devops
           ssh-keyscan -H ${{ secrets.VM_HOST }} >> ~/.ssh/known_hosts
 
       - name: Write vault password file
+        env:
+          VAULT_PASS: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
         run: |
-          echo "${{ secrets.ANSIBLE_VAULT_PASSWORD }}" > ~/.vault_pass_lab05
+          printf '%s' "$VAULT_PASS" > ~/.vault_pass_lab05
           chmod 600 ~/.vault_pass_lab05
 
       - name: Deploy with Ansible

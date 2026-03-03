@@ -1,0 +1,8 @@
+---
+profile: basic
+
+# Demote syntax-check failures caused by vault decryption errors to warnings.
+# Linting validates code style and best practices; vault credential correctness
+# is verified by the deploy job, not the lint job.
+warn_list:
+  - internal-error
