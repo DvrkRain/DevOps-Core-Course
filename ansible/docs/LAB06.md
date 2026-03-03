@@ -953,23 +953,48 @@ paths:
 
 ### CI/CD Workflow Evidence
 
-```
-[PASTE SCREENSHOT OR WORKFLOW LOG HERE]
-# GitHub Actions tab → ansible-deploy.yml run
-```
+![lab_06_workflow_success.png](screenshots/lab06_workflow_success.png "CI/CD Successful Workflow")
 
 ### ansible-lint Passing Evidence
 
-```
-[PASTE WORKFLOW LOG OUTPUT HERE]
-# lint job log showing 0 errors
+```shell
+Run cd ansible
+  cd ansible
+  ansible-lint playbooks/provision.yml playbooks/deploy.yml
+  shell: /usr/bin/bash -e {0}
+  env:
+    pythonLocation: /opt/hostedtoolcache/Python/3.12.12/x64
+    PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib/pkgconfig
+    Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+    Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+    Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+    LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib
+WARNING  Rule ComplexityRule has an invalid version_changed field '', is should be a 'X.Y.Z' format value.
+
+Passed: 0 failure(s), 0 warning(s) in 12 files processed of 12 encountered. Profile 'basic' was required, but 'production' profile passed.
 ```
 
 ### Deployment Verification Step Output
 
-```
-[PASTE OUTPUT HERE]
-# deploy job log showing curl -f http://45.38.143.11:5000/health succeeding
+```shell
+Run sleep 10
+  sleep 10
+  curl -f http://***:5000/health || exit 1
+  echo "Deployment verified: app responding on port 5000"
+  shell: /usr/bin/bash -e {0}
+  env:
+    pythonLocation: /opt/hostedtoolcache/Python/3.12.12/x64
+    PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib/pkgconfig
+    Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+    Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+    Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.12/x64
+    LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.12/x64/lib
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+100    88  100    88    0     0    339      0 --:--:-- --:--:-- --:--:--   339
+{"status":"healthy","timestamp":"2026-03-03T16:41:59.220872+00:00","uptime_seconds":841}Deployment verified: app responding on port 5000
 ```
 
 ### Status Badge
@@ -1010,7 +1035,7 @@ This file serves as the required documentation. All implementation details, code
 - Wipe logic with double-gating makes destructive operations safe to automate
 - GitHub Actions automates lint + deploy on every relevant push
 
-**Total time spent:** [FILL IN]
+**Total time spent:** 5 hours
 
 **Key learnings:**
 - Ansible blocks/rescue/always mirror try/except/finally patterns from general programming
