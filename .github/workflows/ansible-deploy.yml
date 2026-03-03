@@ -35,6 +35,11 @@ jobs:
         run: |
           ansible-galaxy collection install -r ansible/requirements.yml
 
+      - name: Write vault password file
+        run: |
+          echo "${{ secrets.ANSIBLE_VAULT_PASSWORD }}" > ~/.vault_pass_lab05
+          chmod 600 ~/.vault_pass_lab05
+
       - name: Run ansible-lint
         run: |
           cd ansible
