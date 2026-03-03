@@ -1,11 +1,11 @@
 version: '3.8'
 
 services:
-  {{ app_name }}:
+  {{ web_app_name }}:
     image: {{ docker_image }}:{{ docker_image_tag }}
-    container_name: {{ app_name }}
+    container_name: {{ web_app_name }}
     ports:
-      - "{{ app_port }}:{{ app_internal_port }}"
+      - "{{ app_port }}:{{ web_app_internal_port }}"
     environment:
       TZ: UTC
     restart: unless-stopped

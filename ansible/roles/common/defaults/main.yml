@@ -10,4 +10,4 @@ common_packages:
   - lsb-release
   - apt-transport-https
 
-system_timezone: UTC
+common_timezone: UTC

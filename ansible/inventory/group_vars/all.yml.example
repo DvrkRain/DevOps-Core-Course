@@ -12,7 +12,7 @@ docker_image_tag: latest
 # Network configuration
 app_port: 5000
 
-# Container identity (used by web_app role; also sets compose_project_dir via defaults)
-# app_name defaults to "devops-app" in roles/web_app/defaults/main.yml
-# app_internal_port defaults to 5000 in roles/web_app/defaults/main.yml
-# compose_project_dir defaults to "/opt/{{ app_name }}"
+# Container identity (used by web_app role; all have defaults in roles/web_app/defaults/main.yml)
+# web_app_name defaults to "devops-app"
+# web_app_internal_port defaults to 5000
+# web_app_compose_dir defaults to "/opt/{{ web_app_name }}"

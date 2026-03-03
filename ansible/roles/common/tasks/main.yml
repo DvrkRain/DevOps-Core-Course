@@ -1,5 +1,8 @@
 ---
 - name: Install system packages
+  become: true
+  tags:
+    - packages
   block:
     - name: Update apt cache
       ansible.builtin.apt:
@@ -30,16 +33,11 @@
         mode: "0644"
       changed_when: false
 
-  become: true
-  tags:
-    - packages
-
 - name: Configure system settings
-  block:
-    - name: Set system timezone
-      community.general.timezone:
-        name: "{{ system_timezone }}"
-
   become: true
   tags:
     - users
+  block:
+    - name: Set system timezone
+      community.general.timezone:
+        name: "{{ common_timezone }}"

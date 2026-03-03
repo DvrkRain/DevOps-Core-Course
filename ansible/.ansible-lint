@@ -1,8 +1,10 @@
 ---
 profile: basic
 
-# Demote syntax-check failures caused by vault decryption errors to warnings.
-# Linting validates code style and best practices; vault credential correctness
-# is verified by the deploy job, not the lint job.
+# Path-based role references are required locally because ansible.cfg is
+# ignored in WSL (world-writable NTFS mount). CI works fine via ansible.cfg.
+skip_list:
+  - role-name[path]
+
 warn_list:
   - internal-error
