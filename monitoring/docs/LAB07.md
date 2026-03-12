@@ -1,8 +1,11 @@
 # Lab 7 — Observability & Logging with Loki Stack
 
 **Name:** Timur Salakhov
+
 **Date:** 2026-03-12
+
 **Lab Points:** 10 + 2.5 bonus
+
 
 ---
 
@@ -532,7 +535,9 @@ curl http://45.38.143.11:3100/ready
 ```
 
 **Evidence:**
+
 ![VPS ready](screenshots/bonus_vps_ready.png)
+
 ![VPS Grafana Homepage](screenshots/bonus_vps_grafana.png)
 
 ---
