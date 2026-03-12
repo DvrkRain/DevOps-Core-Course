@@ -1,0 +1,28 @@
+---
+# Double-gating: BOTH the tag (web_app_wipe) AND the variable (web_app_wipe=true)
+# must be explicitly provided. The tag gate prevents accidental execution during
+# normal deployments; the variable gate acts as a confirmation prompt via -e.
+- name: Wipe web application
+  when: web_app_wipe | bool
+  tags:
+    - web_app_wipe
+  block:
+    - name: Stop and remove containers via Docker Compose
+      community.docker.docker_compose_v2:
+        project_src: "{{ web_app_compose_dir }}"
+        state: absent
+      ignore_errors: true
+
+    - name: Remove docker-compose file
+      ansible.builtin.file:
+        path: "{{ web_app_compose_dir }}/docker-compose.yml"
+        state: absent
+
+    - name: Remove application directory
+      ansible.builtin.file:
+        path: "{{ web_app_compose_dir }}"
+        state: absent
+
+    - name: Log wipe completion
+      ansible.builtin.debug:
+        msg: "Application {{ web_app_name }} wiped successfully from {{ web_app_compose_dir }}"

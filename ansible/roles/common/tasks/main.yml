@@ -1,14 +1,43 @@
 ---
-- name: Update apt cache
-  apt:
-    update_cache: yes
-    cache_valid_time: 3600
+- name: Install system packages
+  become: true
+  tags:
+    - packages
+  block:
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
 
-- name: Install common packages
-  apt:
-    name: "{{ common_packages }}"
-    state: present
+    - name: Install common packages
+      ansible.builtin.apt:
+        name: "{{ common_packages }}"
+        state: present
 
-- name: Set system timezone
-  community.general.timezone:
-    name: "{{ system_timezone }}"
+  rescue:
+    - name: Fix apt cache and retry installation
+      ansible.builtin.apt:
+        update_cache: true
+        fix_missing: true
+
+    - name: Retry common package installation after fix
+      ansible.builtin.apt:
+        name: "{{ common_packages }}"
+        state: present
+
+  always:
+    - name: Log packages block completion
+      ansible.builtin.copy:
+        content: "common role packages block completed\n"
+        dest: /tmp/ansible_common_packages.log
+        mode: "0644"
+      changed_when: false
+
+- name: Configure system settings
+  become: true
+  tags:
+    - users
+  block:
+    - name: Set system timezone
+      community.general.timezone:
+        name: "{{ common_timezone }}"

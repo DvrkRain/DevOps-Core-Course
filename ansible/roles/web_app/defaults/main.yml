@@ -1,0 +1,10 @@
+---
+# Application identity
+web_app_name: devops-app
+web_app_internal_port: 5000
+web_app_compose_dir: "/opt/{{ web_app_name }}"
+
+# Wipe logic control — set to true to remove the application completely.
+# Wipe only:      ansible-playbook deploy.yml -e "web_app_wipe=true" --tags web_app_wipe
+# Clean install:  ansible-playbook deploy.yml -e "web_app_wipe=true"
+web_app_wipe: false

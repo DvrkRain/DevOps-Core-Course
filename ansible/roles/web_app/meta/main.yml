@@ -1,0 +1,7 @@
+---
+# Declares docker as a hard dependency so that running deploy.yml alone
+# automatically installs the Docker runtime before attempting to use it.
+# Ansible automatically adds {playbook_dir}/../roles to the search path,
+# so "docker" resolves to ansible/roles/docker without needing ansible.cfg.
+dependencies:
+  - role: docker

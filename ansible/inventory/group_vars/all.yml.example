@@ -5,9 +5,14 @@
 dockerhub_username: timursalakhov
 dockerhub_password: <your-dockerhub-access-token>
 
-# Application configuration
-app_name: devops-info-service
+# Application image configuration (used by web_app role)
 docker_image: "timursalakhov/devops-info-service"
 docker_image_tag: latest
+
+# Network configuration
 app_port: 5000
-app_container_name: devops-app
+
+# Container identity (used by web_app role; all have defaults in roles/web_app/defaults/main.yml)
+# web_app_name defaults to "devops-app"
+# web_app_internal_port defaults to 5000
+# web_app_compose_dir defaults to "/opt/{{ web_app_name }}"

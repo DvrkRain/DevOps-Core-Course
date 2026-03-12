@@ -2,6 +2,7 @@
 
 ![CI](https://github.com/DvrkRain/DevOps-Core-Course/actions/workflows/python-ci.yml/badge.svg?branch=lab03)
 [![codecov](https://codecov.io/gh/DvrkRain/DevOps-Core-Course/branch/lab03/graph/badge.svg)](https://codecov.io/gh/DvrkRain/DevOps-Core-Course)
+[![Ansible Deployment](https://github.com/DvrkRain/DevOps-Core-Course/actions/workflows/ansible-deploy.yml/badge.svg)](https://github.com/DvrkRain/DevOps-Core-Course/actions/workflows/ansible-deploy.yml)
 
 A FastAPI web service that provides comprehensive system information and health status.
 
