@@ -1,0 +1,49 @@
+---
+# Service image versions
+monitoring_loki_version: "3.0.0"
+monitoring_promtail_version: "3.0.0"
+monitoring_grafana_version: "12.3.1"
+
+# Application image (must have JSON logging — push updated image before running)
+monitoring_app_image: "timursalakhov/devops-info-service"
+monitoring_app_tag: "latest"
+
+# Ports exposed on the host
+monitoring_loki_port: 3100
+monitoring_promtail_port: 9080
+monitoring_grafana_port: 3000
+monitoring_app_port: 8000
+monitoring_app_internal_port: 5000
+
+# Filesystem paths on the managed host
+monitoring_base_dir: /opt/monitoring
+
+# Loki settings
+monitoring_loki_retention: "168h"
+monitoring_loki_schema_version: "v13"
+monitoring_loki_schema_from: "2020-10-24"
+
+# Resource limits
+monitoring_loki_cpu_limit: "0.5"
+monitoring_loki_memory_limit: "512M"
+monitoring_loki_cpu_reservation: "0.25"
+monitoring_loki_memory_reservation: "256M"
+
+monitoring_promtail_cpu_limit: "0.25"
+monitoring_promtail_memory_limit: "256M"
+monitoring_promtail_cpu_reservation: "0.1"
+monitoring_promtail_memory_reservation: "128M"
+
+monitoring_grafana_cpu_limit: "0.5"
+monitoring_grafana_memory_limit: "512M"
+monitoring_grafana_cpu_reservation: "0.25"
+monitoring_grafana_memory_reservation: "256M"
+
+monitoring_app_cpu_limit: "0.5"
+monitoring_app_memory_limit: "256M"
+monitoring_app_cpu_reservation: "0.1"
+monitoring_app_memory_reservation: "128M"
+
+# Grafana admin credentials — override monitoring_grafana_admin_password via vault
+monitoring_grafana_admin_user: "admin"
+monitoring_grafana_admin_password: "changeme"

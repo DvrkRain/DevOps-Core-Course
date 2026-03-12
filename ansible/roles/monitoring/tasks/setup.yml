@@ -1,0 +1,36 @@
+---
+- name: Create monitoring directory structure
+  become: true
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - "{{ monitoring_base_dir }}"
+    - "{{ monitoring_base_dir }}/loki"
+    - "{{ monitoring_base_dir }}/promtail"
+    - "{{ monitoring_base_dir }}/docs"
+
+- name: Template Loki configuration
+  become: true
+  ansible.builtin.template:
+    src: loki-config.yml.j2
+    dest: "{{ monitoring_base_dir }}/loki/config.yml"
+    mode: "0644"
+  notify: Restart monitoring stack
+
+- name: Template Promtail configuration
+  become: true
+  ansible.builtin.template:
+    src: promtail-config.yml.j2
+    dest: "{{ monitoring_base_dir }}/promtail/config.yml"
+    mode: "0644"
+  notify: Restart monitoring stack
+
+- name: Template Docker Compose file
+  become: true
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ monitoring_base_dir }}/docker-compose.yml"
+    mode: "0644"
+  notify: Restart monitoring stack
