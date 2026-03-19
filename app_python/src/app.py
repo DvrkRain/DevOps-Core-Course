@@ -8,7 +8,15 @@ from typing import Any
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
+from prometheus_client import (
+    CONTENT_TYPE_LATEST,
+    REGISTRY,
+    Counter,
+    Gauge,
+    Histogram,
+    generate_latest,
+)
 from pythonjsonlogger import jsonlogger
 
 # Configuration from environment variables
@@ -55,19 +63,68 @@ app.add_middleware(
 # Application start time
 START_TIME = datetime.now(timezone.utc)
 
+# ── Prometheus metrics (RED method) ─────────────────────────────────────────────
+
+def _metric(cls, name, documentation, labelnames=()):
+    """Create a metric or return the existing one (safe for uvicorn --reload)."""
+    try:
+        return cls(name, documentation, labelnames)
+    except ValueError:
+        return REGISTRY._names_to_collectors[name]
+
+
+http_requests_total = _metric(
+    Counter, "http_requests_total", "Total HTTP requests",
+    ["method", "endpoint", "status"],
+)
+
+http_request_duration_seconds = _metric(
+    Histogram, "http_request_duration_seconds",
+    "HTTP request duration in seconds", ["method", "endpoint"],
+)
+
+http_requests_in_progress = _metric(
+    Gauge, "http_requests_in_progress",
+    "HTTP requests currently being processed",
+)
+
+# Application-specific metrics
+endpoint_calls = _metric(
+    Counter, "devops_info_endpoint_calls",
+    "Business-level endpoint calls", ["endpoint"],
+)
+
+system_info_duration = _metric(
+    Histogram, "devops_info_system_collection_seconds",
+    "Time spent collecting system information",
+)
+
 
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
-    """Emit one structured JSON log line per HTTP request/response."""
+    """Log every request and record Prometheus metrics."""
+    path = request.url.path
+    if path == "/metrics":
+        return await call_next(request)
+
+    http_requests_in_progress.inc()
     start = time.perf_counter()
     response = await call_next(request)
-    duration_ms = round((time.perf_counter() - start) * 1000, 2)
+    duration = time.perf_counter() - start
+    http_requests_in_progress.dec()
+
+    method = request.method
+    status = str(response.status_code)
+    http_requests_total.labels(method=method, endpoint=path, status=status).inc()
+    http_request_duration_seconds.labels(method=method, endpoint=path).observe(duration)
+
+    duration_ms = round(duration * 1000, 2)
     client_ip = request.client.host if request.client else "unknown"
     logger.info(
         "http request",
         extra={
-            "method": request.method,
-            "path": request.url.path,
+            "method": method,
+            "path": path,
             "status_code": response.status_code,
             "client_ip": client_ip,
             "duration_ms": duration_ms,
@@ -85,10 +142,27 @@ def get_uptime() -> dict[str, Any]:
     return {"seconds": seconds, "human": f"{hours} hours, {minutes} minutes"}
 
 
+@app.get("/metrics", include_in_schema=False)
+async def metrics():
+    """Prometheus metrics endpoint."""
+    return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
+
 @app.get("/", response_class=JSONResponse)
 async def get_service_information(request: Request) -> dict[str, Any]:
     """Main endpoint — returns comprehensive service and system information."""
-    uptime_info = get_uptime()
+    endpoint_calls.labels(endpoint="/").inc()
+
+    with system_info_duration.time():
+        uptime_info = get_uptime()
+        system_data = {
+            "hostname": socket.gethostname(),
+            "platform": platform.system(),
+            "platform_version": platform.version(),
+            "architecture": platform.machine(),
+            "cpu_count": os.cpu_count() or 0,
+            "python_version": platform.python_version(),
+        }
 
     response = {
         "service": {
@@ -97,14 +171,7 @@ async def get_service_information(request: Request) -> dict[str, Any]:
             "description": "DevOps course info service",
             "framework": "FastAPI",
         },
-        "system": {
-            "hostname": socket.gethostname(),
-            "platform": platform.system(),
-            "platform_version": platform.version(),
-            "architecture": platform.machine(),
-            "cpu_count": os.cpu_count() or 0,
-            "python_version": platform.python_version(),
-        },
+        "system": system_data,
         "runtime": {
             "uptime_seconds": uptime_info["seconds"],
             "uptime_human": uptime_info["human"],
@@ -120,6 +187,7 @@ async def get_service_information(request: Request) -> dict[str, Any]:
         "endpoints": [
             {"path": "/", "method": "GET", "description": "Service information"},
             {"path": "/health", "method": "GET", "description": "Health check"},
+            {"path": "/metrics", "method": "GET", "description": "Prometheus metrics"},
             {"path": "/docs", "method": "GET", "description": "OpenAPI documentation"},
             {"path": "/redoc", "method": "GET", "description": "ReDoc documentation"},
         ],
@@ -131,6 +199,7 @@ async def get_service_information(request: Request) -> dict[str, Any]:
 @app.get("/health", response_class=JSONResponse)
 async def health_check() -> dict[str, Any]:
     """Health check endpoint for monitoring and Kubernetes probes."""
+    endpoint_calls.labels(endpoint="/health").inc()
     uptime_info = get_uptime()
     return {
         "status": "healthy",
