@@ -7,6 +7,9 @@ python-dotenv ~= 1.2.1
 # Structured JSON logging
 python-json-logger ~= 3.2.0
 
+# Prometheus metrics
+prometheus-client==0.23.1
+
 # Testing
 pytest ~= 9.0.2
 pytest-cov ~= 7.0.0
