@@ -5,6 +5,10 @@ __pycache__
 .ruff_cache/
 ignore/
 
+# Kubernetes
+tls.crt
+tls.key
+
 # Terraform
 *.tfstate
 *.tfstate.*
