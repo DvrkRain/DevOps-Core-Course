@@ -1,0 +1,24 @@
+Thank you for installing {{ include "common.fullname" . }}!
+
+Release: {{ .Release.Name }}
+Chart:   {{ .Chart.Name }}-{{ .Chart.Version }}
+App:     {{ .Chart.AppVersion }}
+
+{{- if eq .Values.service.type "NodePort" }}
+
+Access the application via NodePort:
+  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "common.fullname" . }})
+  echo "Visit http://127.0.0.1:$NODE_PORT"
+
+  Or with minikube:
+  minikube service {{ include "common.fullname" . }} --url
+
+{{- else if eq .Values.service.type "LoadBalancer" }}
+
+Access the application via LoadBalancer:
+  kubectl get --namespace {{ .Release.Namespace }} svc {{ include "common.fullname" . }} -w
+
+{{- end }}
+
+Health check: GET /health
+API docs:     GET /docs

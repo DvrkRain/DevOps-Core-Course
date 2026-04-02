@@ -1,0 +1,31 @@
+Thank you for installing {{ include "common.fullname" . }}!
+
+Release: {{ .Release.Name }}
+Chart:   {{ .Chart.Name }}-{{ .Chart.Version }}
+App:     {{ .Chart.AppVersion }}
+
+{{- if eq .Values.service.type "NodePort" }}
+
+Access the application via NodePort:
+  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "common.fullname" . }})
+  echo "Visit http://127.0.0.1:$NODE_PORT"
+
+  Or with minikube:
+  minikube service {{ include "common.fullname" . }} --url
+
+{{- else if eq .Values.service.type "LoadBalancer" }}
+
+Access the application via LoadBalancer:
+  NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+  kubectl get --namespace {{ .Release.Namespace }} svc {{ include "common.fullname" . }} -w
+
+{{- else if eq .Values.service.type "ClusterIP" }}
+
+Access the application via port-forward:
+  kubectl port-forward --namespace {{ .Release.Namespace }} svc/{{ include "common.fullname" . }} 8080:{{ .Values.service.port }}
+  echo "Visit http://127.0.0.1:8080"
+
+{{- end }}
+
+Health check: GET /health
+API docs:     GET /docs
