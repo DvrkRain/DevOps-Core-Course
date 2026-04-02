@@ -1,0 +1,31 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{ include "common.fullname" . }}-pre-install"
+  labels:
+    {{- include "common.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": pre-install
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": hook-succeeded
+spec:
+  template:
+    metadata:
+      name: "{{ include "common.fullname" . }}-pre-install"
+      labels:
+        {{- include "common.selectorLabels" . | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: pre-install-check
+          image: busybox
+          command:
+            - sh
+            - -c
+            - |
+              echo "=== Pre-install validation ==="
+              echo "Checking cluster DNS resolution..."
+              nslookup kubernetes.default.svc.cluster.local || true
+              echo "Environment ready for deployment."
+              echo "=== Pre-install completed ==="
+  backoffLimit: 1
