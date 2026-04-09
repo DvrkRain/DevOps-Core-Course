@@ -33,12 +33,7 @@ readinessProbe:
   timeoutSeconds: 3
   failureThreshold: 5
 
-env:
-  - name: HOST
-    value: "0.0.0.0"
-  - name: PORT
-    value: "5000"
-  - name: DEBUG
-    value: "True"
-  - name: APP_VERSION
-    value: "1.0.0-dev"
+appConfig:
+  host: "0.0.0.0"
+  port: "5000"
+  debug: "True"

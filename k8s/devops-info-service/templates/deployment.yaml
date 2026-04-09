@@ -20,7 +20,19 @@ spec:
     metadata:
       labels:
         {{- include "common.selectorLabels" . | nindent 8 }}
+      {{- if .Values.vault.enabled }}
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: {{ .Values.vault.role | quote }}
+        vault.hashicorp.com/agent-inject-secret-config: {{ .Values.vault.secretPath | quote }}
+        vault.hashicorp.com/agent-inject-template-config: |
+          {{`{{- with secret `}}"{{ .Values.vault.secretPath }}"{{` -}}`}}
+          USERNAME={{`{{ .Data.data.username }}`}}
+          PASSWORD={{`{{ .Data.data.password }}`}}
+          {{`{{- end -}}`}}
+      {{- end }}
     spec:
+      serviceAccountName: {{ include "common.fullname" . }}
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
@@ -28,9 +40,12 @@ spec:
           ports:
             - containerPort: {{ .Values.service.targetPort }}
               protocol: TCP
-          {{- with .Values.env }}
           env:
-            {{- toYaml . | nindent 12 }}
+            {{- include "devops-info-service.envVars" . | nindent 12 }}
+          {{- if .Values.secret.enabled }}
+          envFrom:
+            - secretRef:
+                name: {{ include "common.fullname" . }}-secret
           {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
