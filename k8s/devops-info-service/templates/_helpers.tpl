@@ -38,3 +38,18 @@ Selector labels
 {{- define "devops-info-service.selectorLabels" -}}
 {{- include "common.selectorLabels" . }}
 {{- end }}
+
+{{/*
+Common environment variables for the application container.
+Centralizes env var definitions so they can be reused across templates (DRY).
+*/}}
+{{- define "devops-info-service.envVars" -}}
+- name: HOST
+  value: {{ .Values.appConfig.host | default "0.0.0.0" | quote }}
+- name: PORT
+  value: {{ .Values.appConfig.port | default "5000" | quote }}
+- name: DEBUG
+  value: {{ .Values.appConfig.debug | default "False" | quote }}
+- name: APP_VERSION
+  value: {{ .Chart.AppVersion | quote }}
+{{- end -}}
