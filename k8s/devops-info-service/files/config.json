@@ -1,0 +1,9 @@
+{
+  "appName": "devops-info-service",
+  "environment": "dev",
+  "features": {
+    "enableMetrics": true,
+    "enableDocs": true,
+    "logFormat": "json"
+  }
+}

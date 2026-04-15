@@ -1,9 +1,9 @@
-replicaCount: 3
+replicaCount: 1
 
 image:
   repository: timursalakhov/devops-info-service
   tag: "latest"
-  pullPolicy: IfNotPresent
+  pullPolicy: Never
 
 nameOverride: ""
 fullnameOverride: ""
@@ -61,3 +61,12 @@ vault:
   enabled: false
   role: "devops-info-service"
   secretPath: "secret/data/devops-info-service/config"
+
+config:
+  environment: "dev"
+  logLevel: "debug"
+
+persistence:
+  enabled: true
+  size: 100Mi
+  storageClass: ""

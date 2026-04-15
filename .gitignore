@@ -1,9 +1,11 @@
+# Local
 test
 .vscode
 .pytest_cache/
 __pycache__
 .ruff_cache/
 ignore/
+app_python/data/visits
 
 # Kubernetes
 tls.crt
