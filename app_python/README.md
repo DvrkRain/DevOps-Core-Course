@@ -117,6 +117,17 @@ Example Response:
 }
 ```
 
+### `GET /visits`
+Returns the current visit counter (number of times `GET /` has been called).
+
+Example Response:
+
+```json
+{
+    "visits": 42
+}
+```
+
 ### `GET /health`
 Health check endpoint for monitoring.
 
@@ -143,6 +154,7 @@ Alternative API documentation.
 | HOST | 0.0.0.0 | Host to bind the server |
 | PORT | 5000 | Port to listen on |
 | DEBUG | False | Enable debug mode with auto-reload |
+| DATA_DIR | /data | Directory for persistent data (visit counter) |
 
 ## Testing
 
@@ -264,6 +276,26 @@ docker rm -f <container-id>
 ### Docker Hub Repository
 
 The image is available at: `https://hub.docker.com/r/timursalakhov/devops-info-service`
+
+### Docker Compose
+
+A `docker-compose.yml` is provided for local development and testing with persistent visit data:
+
+```bash
+# Start the service
+docker compose up -d
+
+# Access the service
+curl http://localhost:5000/
+curl http://localhost:5000/visits
+
+# Visit counter persists across restarts
+docker compose down
+docker compose up -d
+curl http://localhost:5000/visits  # counter is preserved
+```
+
+The compose file mounts `./data` to `/data` inside the container so the visit counter survives container restarts.
 
 ## CI/CD
 

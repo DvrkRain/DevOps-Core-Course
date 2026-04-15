@@ -22,6 +22,9 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # Copy the application code
 COPY src/ .
 
+# Create data directory for persistent visit counter
+RUN mkdir -p /data && chown appuser:appuser /data
+
 # Changing the file owner to appuser
 RUN chown -R appuser:appuser /app
 

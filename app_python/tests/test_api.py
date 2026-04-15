@@ -117,6 +117,7 @@ class TestServiceInfoEndpoint:
         # Verify at least the main endpoints are listed
         paths = [ep["path"] for ep in endpoints]
         assert "/" in paths
+        assert "/visits" in paths
         assert "/health" in paths
 
 
@@ -195,6 +196,39 @@ class TestErrorHandling:
 
         # FastAPI returns 405 Method Not Allowed for invalid methods
         assert response.status_code == 405
+
+
+class TestVisitsEndpoint:
+    """Tests for the visits counter endpoint (GET /visits)."""
+
+    def test_visits_returns_200(self, client):
+        """Test visits endpoint returns 200."""
+        response = client.get("/visits")
+        assert response.status_code == 200
+        assert response.headers["content-type"] == "application/json"
+
+    def test_visits_initial_zero(self, client):
+        """Test visits starts at zero with no prior requests."""
+        response = client.get("/visits")
+        data = response.json()
+        assert "visits" in data
+        assert data["visits"] == 0
+
+    def test_visits_increments_on_root(self, client):
+        """Test that each GET / increments the visit counter."""
+        client.get("/")
+        client.get("/")
+        client.get("/")
+        response = client.get("/visits")
+        assert response.json()["visits"] == 3
+
+    def test_root_response_includes_visits(self, client):
+        """Test that the root endpoint response contains the visits count."""
+        response = client.get("/")
+        data = response.json()
+        assert "visits" in data
+        assert isinstance(data["visits"], int)
+        assert data["visits"] == 1
 
 
 class TestConcurrentRequests:

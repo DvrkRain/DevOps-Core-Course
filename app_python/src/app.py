@@ -2,6 +2,7 @@ import logging
 import os
 import platform
 import socket
+import threading
 import time
 from datetime import datetime, timezone
 from typing import Any
@@ -23,6 +24,24 @@ from pythonjsonlogger import jsonlogger
 HOST = os.getenv("HOST", "0.0.0.0")
 PORT = int(os.getenv("PORT", "5000"))
 DEBUG = os.getenv("DEBUG", "True").lower() == "true"
+DATA_DIR = os.getenv("DATA_DIR", "/data")
+VISITS_FILE = os.path.join(DATA_DIR, "visits")
+
+_visits_lock = threading.Lock()
+
+
+def _read_visits() -> int:
+    try:
+        with open(VISITS_FILE) as f:
+            return int(f.read().strip())
+    except (FileNotFoundError, ValueError):
+        return 0
+
+
+def _write_visits(count: int) -> None:
+    os.makedirs(DATA_DIR, exist_ok=True)
+    with open(VISITS_FILE, "w") as f:
+        f.write(str(count))
 
 
 def _configure_logging() -> logging.Logger:
@@ -153,6 +172,10 @@ async def get_service_information(request: Request) -> dict[str, Any]:
     """Main endpoint — returns comprehensive service and system information."""
     endpoint_calls.labels(endpoint="/").inc()
 
+    with _visits_lock:
+        visits = _read_visits() + 1
+        _write_visits(visits)
+
     with system_info_duration.time():
         uptime_info = get_uptime()
         system_data = {
@@ -171,6 +194,7 @@ async def get_service_information(request: Request) -> dict[str, Any]:
             "description": "DevOps course info service",
             "framework": "FastAPI",
         },
+        "visits": visits,
         "system": system_data,
         "runtime": {
             "uptime_seconds": uptime_info["seconds"],
@@ -186,6 +210,7 @@ async def get_service_information(request: Request) -> dict[str, Any]:
         },
         "endpoints": [
             {"path": "/", "method": "GET", "description": "Service information"},
+            {"path": "/visits", "method": "GET", "description": "Visit counter"},
             {"path": "/health", "method": "GET", "description": "Health check"},
             {"path": "/metrics", "method": "GET", "description": "Prometheus metrics"},
             {"path": "/docs", "method": "GET", "description": "OpenAPI documentation"},
@@ -194,6 +219,13 @@ async def get_service_information(request: Request) -> dict[str, Any]:
     }
 
     return response
+
+
+@app.get("/visits", response_class=JSONResponse)
+async def get_visits() -> dict[str, Any]:
+    """Returns the current visit count."""
+    endpoint_calls.labels(endpoint="/visits").inc()
+    return {"visits": _read_visits()}
 
 
 @app.get("/health", response_class=JSONResponse)
@@ -220,7 +252,7 @@ async def not_found_handler(request: Request, exc):
         content={
             "error": "Not Found",
             "message": f"The requested endpoint {request.url.path} does not exist",
-            "available_endpoints": ["/", "/health", "/docs", "/redoc"],
+            "available_endpoints": ["/", "/visits", "/health", "/docs", "/redoc"],
         },
     )
 

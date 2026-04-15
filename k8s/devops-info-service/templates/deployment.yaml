@@ -20,8 +20,9 @@ spec:
     metadata:
       labels:
         {{- include "common.selectorLabels" . | nindent 8 }}
-      {{- if .Values.vault.enabled }}
       annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+      {{- if .Values.vault.enabled }}
         vault.hashicorp.com/agent-inject: "true"
         vault.hashicorp.com/role: {{ .Values.vault.role | quote }}
         vault.hashicorp.com/agent-inject-secret-config: {{ .Values.vault.secretPath | quote }}
@@ -42,10 +43,19 @@ spec:
               protocol: TCP
           env:
             {{- include "devops-info-service.envVars" . | nindent 12 }}
-          {{- if .Values.secret.enabled }}
           envFrom:
+            - configMapRef:
+                name: {{ include "common.fullname" . }}-env
+          {{- if .Values.secret.enabled }}
             - secretRef:
                 name: {{ include "common.fullname" . }}-secret
+          {{- end }}
+          volumeMounts:
+            - name: config-volume
+              mountPath: /config
+          {{- if .Values.persistence.enabled }}
+            - name: data-volume
+              mountPath: /data
           {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
@@ -53,3 +63,12 @@ spec:
             {{- toYaml .Values.livenessProbe | nindent 12 }}
           readinessProbe:
             {{- toYaml .Values.readinessProbe | nindent 12 }}
+      volumes:
+        - name: config-volume
+          configMap:
+            name: {{ include "common.fullname" . }}-config
+      {{- if .Values.persistence.enabled }}
+        - name: data-volume
+          persistentVolumeClaim:
+            claimName: {{ include "common.fullname" . }}-data
+      {{- end }}
