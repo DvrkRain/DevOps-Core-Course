@@ -3,7 +3,7 @@ replicaCount: 1
 image:
   repository: timursalakhov/devops-info-service
   tag: "latest"
-  pullPolicy: Never
+  pullPolicy: IfNotPresent
 
 nameOverride: ""
 fullnameOverride: ""
