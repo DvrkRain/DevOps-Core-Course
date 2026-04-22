@@ -40,7 +40,7 @@ argocd-repo-server-c498b5698-4bqbw                  1/1     Running   2 (32s ago
 argocd-server-944f8866-wgl7c                        1/1     Running   0             2m6s
 ```
 
-[argocd pods](screenshots/lab13-argocd-pods.png)
+![argocd pods](screenshots/lab13-argocd-pods.png)
 
 ### UI Access via Port-Forward
 
@@ -88,7 +88,7 @@ argocd login localhost:8080 --insecure --username admin --password <password-fro
 argocd app list
 ```
 
-[argocd app list](screenshots/lab13-argocd-login-app-list.png)
+![argocd app list](screenshots/lab13-argocd-login-app-list.png)
 
 ---
 
@@ -190,8 +190,8 @@ To observe ArgoCD detecting drift:
 4. Click **Sync** in the UI or run `argocd app sync devops-info-service`
 5. Verify: `kubectl get pods -n default` shows 2 pods
 
-[ArgoCD OutOfSync](screenshots/lab13-argocd-outofsync.png)
-[ARgoCD Synced](screenshots/lab13-argocd-synced-healthy.png)
+![ArgoCD OutOfSync](screenshots/lab13-argocd-outofsync.png)
+![ARgoCD Synced](screenshots/lab13-argocd-synced-healthy.png)
 
 ---
 
@@ -283,8 +283,8 @@ kubectl get pods -n prod
 argocd app list
 ```
 
-[devops-info-service dev and prod synced](screenshots/lab13-argocd-dev-prod-healthy.png)
-[kubectl dev and prod pods](screenshots/lab13-kubectl-dev-prod-pods.png)
+![devops-info-service dev and prod synced](screenshots/lab13-argocd-dev-prod-healthy.png)
+![kubectl dev and prod pods](screenshots/lab13-kubectl-dev-prod-pods.png)
 
 ---
 
@@ -320,7 +320,7 @@ kubectl get pods -n dev -w
 
 **Expected behavior:** ArgoCD detects the `replicaCount` differs from Git (1 replica defined in `values-dev.yaml`) and scales the deployment back to 1.
 
-[ArgoCD replicas revert](screenshots/lab13-argocd-replicas-revert.png)
+![ArgoCD replicas revert](screenshots/lab13-argocd-replicas-revert.png)
 
 ```powershell
 PS C:\Users\claym\Desktop\study\Spring25\DevOps\DevOps-Core-Course> Get-Date -Format "HH:mm:ss"
@@ -388,7 +388,7 @@ kubectl get pods -n dev -w
 
 **Expected behavior:** Kubernetes recreates the pod within seconds. This is NOT ArgoCD — the ReplicaSet controller notices the pod count is below desired and creates a replacement pod immediately.
 
-[ArgoCD deleted pod revert](screenshots/lab13-argocd-pod-delete-revert.png)
+![ArgoCD deleted pod revert](screenshots/lab13-argocd-pod-delete-revert.png)
 
 ```powershell
 PS C:\Users\claym\Desktop\study\Spring25\DevOps\DevOps-Core-Course> Get-Date -Format "HH:mm:ss"
@@ -424,7 +424,7 @@ kubectl get deployment <deployment-name> -n dev -o jsonpath='{.metadata.labels}'
 
 **Expected behavior:** The manually added label is removed by ArgoCD as it re-applies the Git-defined state.
 
-[ArgoCD manually added label](screenshots/lab13-argocd-add-label.png)
+![ArgoCD manually added label](screenshots/lab13-argocd-add-label.png)
 
 ```powershell
 PS C:\Users\claym\Desktop\study\Spring25\DevOps\DevOps-Core-Course> Get-Date -Format "HH:mm:ss"
