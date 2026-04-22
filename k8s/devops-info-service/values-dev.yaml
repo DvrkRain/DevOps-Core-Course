@@ -2,6 +2,7 @@ replicaCount: 1
 
 image:
   tag: "latest"
+  pullPolicy: IfNotPresent
 
 resources:
   requests:
@@ -12,8 +13,9 @@ resources:
     cpu: "100m"
 
 service:
-  type: NodePort
-  nodePort: 30080
+  type: ClusterIP
+  port: 80
+  targetPort: 5000
 
 livenessProbe:
   httpGet:
@@ -37,3 +39,7 @@ appConfig:
   host: "0.0.0.0"
   port: "5000"
   debug: "True"
+
+config:
+  environment: "dev"
+  logLevel: "debug"
