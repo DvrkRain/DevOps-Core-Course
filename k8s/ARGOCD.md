@@ -30,17 +30,17 @@ kubectl get pods -n argocd
 Expected output — all pods should be `Running 1/1`:
 
 ```
-NAME                                                READY   STATUS    RESTARTS   AGE
-argocd-application-controller-0                     1/1     Running   0          2m
-argocd-applicationset-controller-xxxxxxxxx-xxxxx    1/1     Running   0          2m
-argocd-dex-server-xxxxxxxxx-xxxxx                   1/1     Running   0          2m
-argocd-notifications-controller-xxxxxxxxx-xxxxx     1/1     Running   0          2m
-argocd-redis-xxxxxxxxx-xxxxx                        1/1     Running   0          2m
-argocd-repo-server-xxxxxxxxx-xxxxx                  1/1     Running   0          2m
-argocd-server-xxxxxxxxx-xxxxx                       1/1     Running   0          2m
+NAME                                                READY   STATUS    RESTARTS      AGE
+argocd-application-controller-0                     1/1     Running   0             2m4s
+argocd-applicationset-controller-58cc5f8cf5-z9gdz   1/1     Running   0             2m6s
+argocd-dex-server-7cfd7f696c-j2cnr                  1/1     Running   0             2m6s
+argocd-notifications-controller-576878c8f7-xpvqh    1/1     Running   0             2m6s
+argocd-redis-75d64694b7-s89wc                       1/1     Running   0             2m6s
+argocd-repo-server-c498b5698-4bqbw                  1/1     Running   2 (32s ago)   2m6s
+argocd-server-944f8866-wgl7c                        1/1     Running   0             2m6s
 ```
 
-<!-- SCREENSHOT: paste kubectl get pods -n argocd output here -->
+[argocd pods](screenshots/lab13-argocd-pods.png)
 
 ### UI Access via Port-Forward
 
@@ -62,7 +62,7 @@ $secret = kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="
 
 Login credentials:
 - **Username:** `admin`
-- **Password:** output of the command above
+- **Password:** `QHZlhzb9Ci7cDjGp`
 
 ### CLI Installation (Windows)
 
@@ -88,7 +88,7 @@ argocd login localhost:8080 --insecure --username admin --password <password-fro
 argocd app list
 ```
 
-<!-- SCREENSHOT: paste argocd app list output here after apps are deployed -->
+[argocd app list](screenshots/lab13-argocd-login-app-list.png)
 
 ---
 
@@ -162,6 +162,24 @@ argocd app get devops-info-service
 kubectl get pods -n default
 ```
 
+### Application Access Verification
+
+```powershell
+# Get the NodePort URL (default namespace, NodePort service)
+PS C:\Users\claym\Desktop\study\Spring25\DevOps\DevOps-Core-Course> minikube service devops-info-service --url
+http://127.0.0.1:50108
+❗  Because you are using a Docker driver on windows, the terminal needs to be open to run it.
+
+# Verify the health endpoint responds
+PS C:\Users\claym\Desktop\study\Spring25\DevOps\DevOps-Core-Course> curl.exe http://127.0.0.1:50108/health
+{"status":"healthy","timestamp":"2026-04-22T17:18:32.134348+00:00","uptime_seconds":5389}
+```
+
+Expected response:
+```json
+{"status":"healthy","timestamp":"...","uptime_seconds":...}
+```
+
 ### Testing the GitOps Workflow
 
 To observe ArgoCD detecting drift:
@@ -172,8 +190,8 @@ To observe ArgoCD detecting drift:
 4. Click **Sync** in the UI or run `argocd app sync devops-info-service`
 5. Verify: `kubectl get pods -n default` shows 2 pods
 
-<!-- SCREENSHOT: ArgoCD UI showing OutOfSync state -->
-<!-- SCREENSHOT: ArgoCD UI after Sync showing Synced + Healthy -->
+[ArgoCD OutOfSync](screenshots/lab13-argocd-outofsync.png)
+[ARgoCD Synced](screenshots/lab13-argocd-synced-healthy.png)
 
 ---
 
@@ -265,9 +283,8 @@ kubectl get pods -n prod
 argocd app list
 ```
 
-<!-- SCREENSHOT: ArgoCD UI showing both devops-info-service-dev and devops-info-service-prod -->
-<!-- SCREENSHOT: kubectl get pods -n dev output -->
-<!-- SCREENSHOT: kubectl get pods -n prod output -->
+[devops-info-service dev and prod synced](screenshots/lab13-argocd-dev-prod-healthy.png)
+[kubectl dev and prod pods](screenshots/lab13-kubectl-dev-prod-pods.png)
 
 ---
 
@@ -303,16 +320,57 @@ kubectl get pods -n dev -w
 
 **Expected behavior:** ArgoCD detects the `replicaCount` differs from Git (1 replica defined in `values-dev.yaml`) and scales the deployment back to 1.
 
-<!-- EVIDENCE: Paste before/after output here with timestamps -->
-```
-[TIMESTAMP BEFORE] kubectl get deployment -n dev:
-<paste output>
+[ArgoCD replicas revert](screenshots/lab13-argocd-replicas-revert.png)
 
-[TIMESTAMP AFTER MANUAL SCALE] kubectl get pods -n dev:
-<paste output showing 5 pods>
-
-[TIMESTAMP AFTER ARGOCD REVERTS] kubectl get pods -n dev:
-<paste output showing 1 pod restored>
+```powershell
+PS C:\Users\claym\Desktop\study\Spring25\DevOps\DevOps-Core-Course> Get-Date -Format "HH:mm:ss"
+19:46:17
+PS C:\Users\claym\Desktop\study\Spring25\DevOps\DevOps-Core-Course> kubectl get deployment -n dev
+NAME                      READY   UP-TO-DATE   AVAILABLE   AGE
+devops-info-service-dev   1/1     1            1           54m
+PS C:\Users\claym\Desktop\study\Spring25\DevOps\DevOps-Core-Course> kubectl scale deployment devops-info-service-dev -n dev --replicas=5
+deployment.apps/devops-info-service-dev scaled
+PS C:\Users\claym\Desktop\study\Spring25\DevOps\DevOps-Core-Course> kubectl get pods -n dev
+NAME                                      READY   STATUS    RESTARTS   AGE
+devops-info-service-dev-54fd5c8b8-27wnk   1/1     Running   0          55m
+devops-info-service-dev-54fd5c8b8-4k2gc   0/1     Running   0          4s
+devops-info-service-dev-54fd5c8b8-5phpq   0/1     Running   0          4s
+devops-info-service-dev-54fd5c8b8-8b7w4   0/1     Running   0          4s
+devops-info-service-dev-54fd5c8b8-d7nbv   0/1     Running   0          4s
+PS C:\Users\claym\Desktop\study\Spring25\DevOps\DevOps-Core-Course> kubectl get pods -n dev -w
+NAME                                      READY   STATUS    RESTARTS   AGE
+devops-info-service-dev-54fd5c8b8-27wnk   1/1     Running   0          55m
+devops-info-service-dev-54fd5c8b8-4k2gc   0/1     Running   0          5s
+devops-info-service-dev-54fd5c8b8-5phpq   0/1     Running   0          5s
+devops-info-service-dev-54fd5c8b8-8b7w4   0/1     Running   0          5s
+devops-info-service-dev-54fd5c8b8-d7nbv   0/1     Running   0          5s
+devops-info-service-dev-54fd5c8b8-d7nbv   0/1     Terminating   0          8s
+devops-info-service-dev-54fd5c8b8-4k2gc   0/1     Terminating   0          8s
+devops-info-service-dev-54fd5c8b8-8b7w4   0/1     Terminating   0          8s
+devops-info-service-dev-54fd5c8b8-5phpq   0/1     Terminating   0          8s
+devops-info-service-dev-54fd5c8b8-d7nbv   0/1     Terminating   0          8s
+devops-info-service-dev-54fd5c8b8-8b7w4   0/1     Terminating   0          8s
+devops-info-service-dev-54fd5c8b8-5phpq   0/1     Terminating   0          8s
+devops-info-service-dev-54fd5c8b8-4k2gc   0/1     Terminating   0          8s
+devops-info-service-dev-54fd5c8b8-4k2gc   0/1     Completed     0          11s
+devops-info-service-dev-54fd5c8b8-d7nbv   0/1     Completed     0          11s
+devops-info-service-dev-54fd5c8b8-5phpq   0/1     Completed     0          11s
+devops-info-service-dev-54fd5c8b8-8b7w4   0/1     Completed     0          11s
+devops-info-service-dev-54fd5c8b8-8b7w4   0/1     Completed     0          12s
+devops-info-service-dev-54fd5c8b8-8b7w4   0/1     Completed     0          12s
+devops-info-service-dev-54fd5c8b8-5phpq   0/1     Completed     0          12s
+devops-info-service-dev-54fd5c8b8-5phpq   0/1     Completed     0          12s
+devops-info-service-dev-54fd5c8b8-4k2gc   0/1     Completed     0          12s
+devops-info-service-dev-54fd5c8b8-4k2gc   0/1     Completed     0          12s
+devops-info-service-dev-54fd5c8b8-4k2gc   0/1     Completed     0          12s
+devops-info-service-dev-54fd5c8b8-d7nbv   0/1     Completed     0          12s
+devops-info-service-dev-54fd5c8b8-d7nbv   0/1     Completed     0          12s
+devops-info-service-dev-54fd5c8b8-d7nbv   0/1     Completed     0          12s
+PS C:\Users\claym\Desktop\study\Spring25\DevOps\DevOps-Core-Course> kubectl get pods -n dev
+NAME                                      READY   STATUS    RESTARTS   AGE
+devops-info-service-dev-54fd5c8b8-27wnk   1/1     Running   0          55m
+PS C:\Users\claym\Desktop\study\Spring25\DevOps\DevOps-Core-Course> Get-Date -Format "HH:mm:ss"
+19:46:50
 ```
 
 ### Test 2 — Pod Deletion (Kubernetes Self-Healing)
@@ -330,13 +388,22 @@ kubectl get pods -n dev -w
 
 **Expected behavior:** Kubernetes recreates the pod within seconds. This is NOT ArgoCD — the ReplicaSet controller notices the pod count is below desired and creates a replacement pod immediately.
 
-<!-- EVIDENCE: Paste output here with timestamps -->
-```
-[TIMESTAMP] kubectl delete pod output:
-<paste>
+[ArgoCD deleted pod revert](screenshots/lab13-argocd-pod-delete-revert.png)
 
-[TIMESTAMP] kubectl get pods -n dev -w showing new pod:
-<paste>
+```powershell
+PS C:\Users\claym\Desktop\study\Spring25\DevOps\DevOps-Core-Course> Get-Date -Format "HH:mm:ss"
+19:53:18
+PS C:\Users\claym\Desktop\study\Spring25\DevOps\DevOps-Core-Course> kubectl get pods -n dev
+NAME                                      READY   STATUS    RESTARTS   AGE
+devops-info-service-dev-54fd5c8b8-75xsz   1/1     Running   0          111s
+PS C:\Users\claym\Desktop\study\Spring25\DevOps\DevOps-Core-Course> kubectl delete pod -n dev -l app.kubernetes.io/name=devops-info-service
+pod "devops-info-service-dev-54fd5c8b8-75xsz" deleted from dev namespace
+PS C:\Users\claym\Desktop\study\Spring25\DevOps\DevOps-Core-Course> kubectl get pods -n dev -w
+NAME                                      READY   STATUS    RESTARTS   AGE
+devops-info-service-dev-54fd5c8b8-jvshr   0/1     Running   0          5s
+devops-info-service-dev-54fd5c8b8-jvshr   1/1     Running   0          23s
+PS C:\Users\claym\Desktop\study\Spring25\DevOps\DevOps-Core-Course> Get-Date -Format "HH:mm:ss"
+19:53:55
 ```
 
 ### Test 3 — Configuration Drift (ArgoCD Self-Healing)
@@ -357,17 +424,32 @@ kubectl get deployment <deployment-name> -n dev -o jsonpath='{.metadata.labels}'
 
 **Expected behavior:** The manually added label is removed by ArgoCD as it re-applies the Git-defined state.
 
-<!-- EVIDENCE: Paste diff and before/after labels here -->
-```
-argocd app diff devops-info-service-dev output:
-<paste>
+[ArgoCD manually added label](screenshots/lab13-argocd-add-label.png)
 
-Labels before ArgoCD revert:
-<paste>
-
-Labels after ArgoCD revert:
-<paste>
+```powershell
+PS C:\Users\claym\Desktop\study\Spring25\DevOps\DevOps-Core-Course> Get-Date -Format "HH:mm:ss"
+19:57:07
+PS C:\Users\claym\Desktop\study\Spring25\DevOps\DevOps-Core-Course> kubectl get deployment -n dev
+NAME                      READY   UP-TO-DATE   AVAILABLE   AGE
+devops-info-service-dev   1/1     1            1           65m
+PS C:\Users\claym\Desktop\study\Spring25\DevOps\DevOps-Core-Course> kubectl label deployment devops-info-service-dev -n dev manually-added=true
+deployment.apps/devops-info-service-dev labeled
+PS C:\Users\claym\Desktop\study\Spring25\DevOps\DevOps-Core-Course> argocd app diff devops-info-service-dev
+PS C:\Users\claym\Desktop\study\Spring25\DevOps\DevOps-Core-Course> kubectl get deployment devops-info-service-dev -n dev -o jsonpath='{.metadata.labels}'
+{"app.kubernetes.io/instance":"devops-info-service","app.kubernetes.io/version":"1.0.0","helm.sh/chart":"devops-info-service-0,1,0","manually-added":"true"}
+PS C:\Users\claym\Desktop\study\Spring25\DevOps\DevOps-Core-Course> Get-Date -Format "HH:mm:ss"
+19:58:14
+PS C:\Users\claym\Desktop\study\Spring25\DevOps\DevOps-Core-Course> Get-Date -Format "HH:mm:ss"
+20:01:03
+PS C:\Users\claym\Desktop\study\Spring25\DevOps\DevOps-Core-Course> kubectl get deployment devops-info-service-dev -n dev -o jsonpath='{.metadata.labels}'
+{"app.kubernetes.io/instance":"devops-info-service","app.kubernetes.io/version":"1.0.0","helm.sh/chart":"devops-info-service-0.1.0"}
 ```
+
+> **Note:** `argocd app diff` returned no output immediately after adding the label because
+> ArgoCD had not yet run a refresh cycle. After the ~3-minute poll interval, ArgoCD detected
+> that the cluster state (extra label `manually-added=true`) diverged from the Git-defined
+> Helm-rendered state and re-applied the manifest, removing the manually added label.
+> The `lab13-argocd-add-label.png` screenshot shows the drift as seen in the ArgoCD UI diff view.
 
 ### Sync Behavior Summary
 
@@ -379,108 +461,3 @@ Labels after ArgoCD revert:
 | New commit pushed to Git | ArgoCD (automated) | ~3 min or via webhook |
 
 ArgoCD's default Git polling interval is **3 minutes**. Webhooks can reduce this to near-instant.
-
----
-
-## 5. Bonus — ApplicationSet
-
-### Overview
-
-Instead of maintaining three separate Application manifests, an ApplicationSet generates them from a single template using a **List generator**. This is the recommended pattern for multi-environment or multi-tenant deployments.
-
-### Manifest (`application-set.yaml`)
-
-```yaml
-apiVersion: argoproj.io/v1alpha1
-kind: ApplicationSet
-metadata:
-  name: devops-info-service-set
-  namespace: argocd
-spec:
-  goTemplate: true
-  goTemplateOptions:
-    - missingkey=error
-  generators:
-    - list:
-        elements:
-          - env: dev
-            namespace: dev
-            valuesFile: values-dev.yaml
-            autoSync: true
-          - env: prod
-            namespace: prod
-            valuesFile: values-prod.yaml
-            autoSync: false
-  template:
-    metadata:
-      name: 'devops-info-service-{{.env}}'
-    spec:
-      project: default
-      source:
-        repoURL: https://github.com/DvrkRain/DevOps-Core-Course.git
-        targetRevision: lab13
-        path: k8s/devops-info-service
-        helm:
-          valueFiles:
-            - values.yaml
-            - '{{.valuesFile}}'
-      destination:
-        server: https://kubernetes.default.svc
-        namespace: '{{.namespace}}'
-      syncPolicy:
-        {{- if .autoSync }}
-        automated:
-          prune: true
-          selfHeal: true
-        {{- end }}
-        syncOptions:
-          - CreateNamespace=true
-```
-
-### Generator Configuration Explained
-
-| Field | Purpose |
-|-------|---------|
-| `goTemplate: true` | Enables Go templating for conditional blocks (e.g., `{{- if .autoSync }}`) |
-| `generators[].list.elements` | Defines the parameter matrix — one Application per element |
-| `{{.env}}` | Injected parameter used in the app name |
-| `{{.namespace}}` | Injected parameter used as deployment target namespace |
-| `{{.valuesFile}}` | Injected parameter selecting the environment-specific values file |
-| `{{- if .autoSync }}` | Conditional block — dev gets `automated` sync, prod does not |
-
-### Deploying the ApplicationSet
-
-```powershell
-# Apply (this replaces individual application-dev.yaml and application-prod.yaml)
-kubectl apply -f k8s/argocd/application-set.yaml
-
-# Verify two applications were generated
-argocd app list
-
-# Check generated apps
-argocd app get devops-info-service-dev
-argocd app get devops-info-service-prod
-```
-
-<!-- SCREENSHOT: ArgoCD UI showing ApplicationSet-generated applications -->
-<!-- SCREENSHOT: argocd app list showing both generated apps -->
-
-### ApplicationSet vs Individual Applications
-
-| Aspect | Individual Applications | ApplicationSet |
-|--------|------------------------|----------------|
-| **Files to maintain** | One per environment (N files) | Single template |
-| **Adding an environment** | Create a new YAML file | Add one list element |
-| **Risk of divergence** | Config can drift between app files | Template guarantees consistency |
-| **Conditional logic** | Handled per-file | Inline Go template conditionals |
-| **Best for** | 1-2 apps, complex per-app config | Many environments, mono-repo, multi-cluster |
-
-### Available Generator Types
-
-| Generator | Use Case |
-|-----------|----------|
-| **List** | Explicit list of environments (this lab) |
-| **Cluster** | Deploy to multiple Kubernetes clusters |
-| **Git** | Auto-discover apps from Git directory structure |
-| **Matrix** | Combine two generators (e.g., every app × every cluster) |
-| **Merge** | Merge outputs of multiple generators |
