@@ -119,11 +119,11 @@ kubectl argo rollouts get rollout devops-info-service -n default -w
 
 ### 2.3 Triggering a Rollout
 
-Bump the image to start a canary rollout:
+> **Important:** the *first* deploy of a Rollout fast-forwards through every canary step, because there is no prior stable RS to canary against. The canary ladder only fires on **revision 2 and later**. Likewise, `set image` to the same tag the cluster already runs is a no-op (same pod template = same hash = no new revision). The chart pins `:latest`, so trigger revision 2 by switching to a different published tag — the Docker Hub repo currently has `latest`, `2026.02.11-4`, and `2026.02.11-3`:
 
 ```powershell
 kubectl argo rollouts set image devops-info-service `
-  devops-info-service=timursalakhov/devops-info-service:latest -n default
+  devops-info-service=timursalakhov/devops-info-service:2026.02.11-3 -n default
 ```
 
 The Rollout enters step 1 (`setWeight: 20`) and **pauses indefinitely** at step 2 (`pause: {}` — manual gate). `kubectl argo rollouts get` shows `Status: Paused`, `Message: CanaryPauseStep`, `Step: 1/9` (Argo numbers steps from 0 — index 1 is the pause), and the canary ReplicaSet at 1 pod (so 33% actual weight with 2 stable + 1 canary, not the requested 20% — replica-based weighting can't subdivide pods).
@@ -222,8 +222,7 @@ kubectl get rollout,svc -n bluegreen
 Same caveat as 2.3 — `:latest` is already the running image, so trigger a real change with a different tag:
 
 ```powershell
-kubectl argo rollouts set image devops-info-service-bluegreen `
-  devops-info-service=timursalakhov/devops-info-service:latest -n bluegreen
+kubectl argo rollouts set image devops-info-service-bluegreen devops-info-service=timursalakhov/devops-info-service:2026.02.11-3 -n bluegreen
 
 kubectl argo rollouts get rollout devops-info-service-bluegreen -n bluegreen -w
 ```
@@ -390,8 +389,8 @@ Deployed via [`k8s/argocd/application-canary-analysis.yaml`](argocd/application-
 kubectl apply -f k8s/argocd/application-canary-analysis.yaml
 argocd app sync devops-info-service-canary-analysis
 
-# Trigger revision 2 (any tag different from what's already running)
-kubectl argo rollouts set image devops-info-service-canary-analysis devops-info-service=timursalakhov/devops-info-service:latest -n canary-demo
+# Trigger revision 2 (any tag different from what's already running — chart deploys :latest)
+kubectl argo rollouts set image devops-info-service-canary-analysis devops-info-service=timursalakhov/devops-info-service:2026.02.11-3 -n canary-demo
 
 kubectl argo rollouts get rollout devops-info-service-canary-analysis -n canary-demo -w
 ```
@@ -419,7 +418,9 @@ spec:
 "@ | Out-File -FilePath .tmp-analysis-fail.yaml -Encoding utf8
 kubectl patch analysistemplate success-rate -n canary-demo --type=merge --patch-file=.tmp-analysis-fail.yaml
 
-# 2. Trigger a real revision change
+# 2. Trigger a real revision change (use a tag different from what's currently running:
+#    after 6.3.a the cluster is on :2026.02.11-3, so :latest is a real change.
+#    If you skipped 6.3.a, swap to :2026.02.11-4 instead)
 kubectl argo rollouts set image devops-info-service-canary-analysis devops-info-service=timursalakhov/devops-info-service:latest -n canary-demo
 
 # 3. Watch — within ~80-90s the AnalysisRun fails and the rollout auto-rolls back
