@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: devops-info-service-prod
+  name: devops-info-service-canary-analysis
   namespace: argocd
 spec:
   project: default
@@ -12,10 +12,11 @@ spec:
     helm:
       valueFiles:
         - values.yaml
-        - values-prod.yaml
+        - values-canary-analysis.yaml
   destination:
     server: https://kubernetes.default.svc
-    namespace: prod
+    namespace: canary-demo
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
+      - ServerSideApply=true
