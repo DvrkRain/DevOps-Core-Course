@@ -1,9 +1,6 @@
 # Argo Rollouts — Progressive Delivery for the DevOps Info Service
 
-This document covers the Lab 14 implementation: how the existing Helm chart was
-converted from a `Deployment` to an Argo Rollouts `Rollout`, how canary and
-blue-green strategies are configured, and how metrics-based analysis drives
-automatic rollback.
+This document covers the Lab 14 implementation: how the existing Helm chart was converted from a `Deployment` to an Argo Rollouts `Rollout`, how canary and blue-green strategies are configured, and how metrics-based analysis drives automatic rollback.
 
 ---
 
@@ -11,8 +8,7 @@ automatic rollback.
 
 ### 1.1 Controller Installation
 
-Argo Rollouts is installed in a dedicated `argo-rollouts` namespace using the
-upstream manifests.
+Argo Rollouts is installed in a dedicated `argo-rollouts` namespace using the upstream manifests.
 
 ```powershell
 # Create the namespace and install the controller
@@ -66,9 +62,7 @@ kubectl port-forward svc/argo-rollouts-dashboard -n argo-rollouts 3100:3100
 
 ### 1.4 Rollout vs Deployment
 
-`Rollout` is a drop-in replacement for `Deployment` with extra fields for
-progressive delivery. Apart from the differences below, the `spec.template`
-block (containers, env, volumes, probes) is **identical** to a Deployment.
+`Rollout` is a drop-in replacement for `Deployment` with extra fields for progressive delivery. Apart from the differences below, the `spec.template` block (containers, env, volumes, probes) is **identical** to a Deployment.
 
 | Field / Capability | `Deployment` | `Rollout` |
 |---|---|---|
@@ -82,11 +76,7 @@ block (containers, env, volumes, probes) is **identical** to a Deployment.
 | CLI tooling | `kubectl rollout` | `kubectl argo rollouts` (richer: `promote`, `abort`, `retry`, `set image`) |
 | GUI | none | dedicated dashboard (`argo-rollouts-dashboard`) |
 
-In this chart the only structural change in [`templates/rollout.yaml`](devops-info-service/templates/rollout.yaml)
-versus the deleted `templates/deployment.yaml` is `kind: Rollout` plus the new
-`spec.strategy.canary` / `spec.strategy.blueGreen` block — the `Service` keeps
-its existing selector and continues to route to whichever ReplicaSet the
-controller marks as receiving traffic.
+In this chart the only structural change in [`templates/rollout.yaml`](devops-info-service/templates/rollout.yaml) versus the deleted `templates/deployment.yaml` is `kind: Rollout` plus the new `spec.strategy.canary` / `spec.strategy.blueGreen` block — the `Service` keeps its existing selector and continues to route to whichever ReplicaSet the controller marks as receiving traffic.
 
 ---
 
@@ -113,13 +103,7 @@ rollout:
       - setWeight: 100
 ```
 
-The chart's [`templates/rollout.yaml`](devops-info-service/templates/rollout.yaml)
-renders these steps directly into the Rollout `spec.strategy.canary.steps`
-block. Because no traffic-router (NGINX/Istio) is configured, Argo Rollouts
-performs **replica-based weighting**: with `replicaCount: 2` (default), 20% is
-rounded to a single canary pod (so effectively 50% of traffic on a tiny demo).
-For a more granular walkthrough use the `prod` env (5 replicas) or the
-`canary-demo` namespace (3 replicas, see Bonus section).
+The chart's [`templates/rollout.yaml`](devops-info-service/templates/rollout.yaml) renders these steps directly into the Rollout `spec.strategy.canary.steps` block. Because no traffic-router (NGINX/Istio) is configured, Argo Rollouts performs **replica-based weighting**: with `replicaCount: 2` (default), 20% is rounded to a single canary pod (so effectively 50% of traffic on a tiny demo). For a more granular walkthrough use the `prod` env (5 replicas) or the `canary-demo` namespace (3 replicas, see Bonus section).
 
 ### 2.2 Deploying the Canary App
 
@@ -142,9 +126,7 @@ kubectl argo rollouts set image devops-info-service `
   devops-info-service=timursalakhov/devops-info-service:latest -n default
 ```
 
-The Rollout enters step 1 (`setWeight: 20`) and **pauses indefinitely** because
-step 2 is `pause: {}` (manual gate). The dashboard shows `Paused — manual` and
-the canary ReplicaSet sits at 1 pod.
+The Rollout enters step 1 (`setWeight: 20`) and **pauses indefinitely** at step 2 (`pause: {}` — manual gate). `kubectl argo rollouts get` shows `Status: Paused`, `Message: CanaryPauseStep`, `Step: 1/9` (Argo numbers steps from 0 — index 1 is the pause), and the canary ReplicaSet at 1 pod (so 33% actual weight with 2 stable + 1 canary, not the requested 20% — replica-based weighting can't subdivide pods).
 
 ![Canary paused at 20%](screenshots/lab14-canary-step1-paused.png)
 
@@ -158,28 +140,26 @@ kubectl argo rollouts promote devops-info-service -n default
 kubectl argo rollouts get rollout devops-info-service -n default -w
 ```
 
-Steps 4, 6, 8 each sleep 30 seconds before promoting to the next weight, and
-step 9 (`setWeight: 100`) marks the rollout `Healthy`.
+Steps 4, 6, 8 each sleep 30 seconds before promoting to the next weight, and step 9 (`setWeight: 100`) marks the rollout `Healthy`.
 
 ![Canary progressing through weights](screenshots/lab14-canary-progressing.png)
 
 ### 2.5 Abort and Retry
 
-While in mid-rollout, abort to immediately shift traffic back to the stable
-ReplicaSet:
+While in mid-rollout, abort to immediately shift traffic back to the stable ReplicaSet:
 
 ```powershell
-# Trigger another rollout
+# Trigger another rollout (any tag different from what's currently running)
 kubectl argo rollouts set image devops-info-service `
-  devops-info-service=timursalakhov/devops-info-service:1.0.0 -n default
+  devops-info-service=timursalakhov/devops-info-service:latest -n default
 
-# In the middle of progression, abort
+# In the middle of progression (e.g. between weights 40 and 60), abort
 kubectl argo rollouts abort devops-info-service -n default
 
-# Confirm: canary scaled to 0, all traffic on stable
+# Confirm: canary scaled to 0, all traffic back on stable
 kubectl argo rollouts get rollout devops-info-service -n default
 
-# Retry the aborted rollout if you want to continue
+# Retry the aborted rollout (re-runs steps from the beginning)
 kubectl argo rollouts retry rollout devops-info-service -n default
 ```
 
@@ -191,10 +171,7 @@ kubectl argo rollouts retry rollout devops-info-service -n default
 
 ### 3.1 Strategy Configuration
 
-The blue-green variant lives in
-[`values-bluegreen.yaml`](devops-info-service/values-bluegreen.yaml). It flips
-the strategy and disables the PVC (because two ReplicaSets run in parallel and
-RWO PVCs can only be mounted by pods on a single node):
+The blue-green variant lives in [`values-bluegreen.yaml`](devops-info-service/values-bluegreen.yaml). It flips the strategy and disables the PVC (because two ReplicaSets run in parallel and RWO PVCs can only be mounted by pods on a single node):
 
 ```yaml
 rollout:
@@ -206,8 +183,7 @@ persistence:
   enabled: false
 ```
 
-[`templates/rollout.yaml`](devops-info-service/templates/rollout.yaml) wires up
-the two services Argo Rollouts manages:
+[`templates/rollout.yaml`](devops-info-service/templates/rollout.yaml) wires up the two services Argo Rollouts manages:
 
 ```yaml
 strategy:
@@ -218,24 +194,18 @@ strategy:
     scaleDownDelaySeconds: 30
 ```
 
-The preview service is rendered conditionally by
-[`templates/service-preview.yaml`](devops-info-service/templates/service-preview.yaml)
-only when `rollout.strategy == blueGreen`. Both services point at the same pod
-selector — the **rollouts controller** injects a
-`rollouts-pod-template-hash` label onto each service to bind it to the active
-or preview ReplicaSet.
+The preview service is rendered conditionally by [`templates/service-preview.yaml`](devops-info-service/templates/service-preview.yaml) only when `rollout.strategy == blueGreen`. Both services point at the same pod selector — the **rollouts controller** injects a `rollouts-pod-template-hash` label onto each service to bind it to the active or preview ReplicaSet.
 
 ### 3.2 Active vs Preview Service
 
+> **Naming note:** because the ArgoCD `Application` is named `devops-info-service-bluegreen`, the Helm release name is the same, and `common.fullname` short-circuits to that name (release name already contains the chart name). So every resource in the `bluegreen` namespace carries the `-bluegreen` suffix — that includes the Rollout, the active Service, and the preview Service.
+
 | Service | Purpose | Selects |
 |---|---|---|
-| `devops-info-service` | production traffic | currently-active (blue) ReplicaSet |
-| `devops-info-service-preview` | new version testing | newly-created (green) ReplicaSet |
+| `devops-info-service-bluegreen` | production traffic | currently-active (blue) ReplicaSet |
+| `devops-info-service-bluegreen-preview` | new version testing | newly-created (green) ReplicaSet |
 
-`autoPromotionEnabled: false` means a human must call `kubectl argo rollouts
-promote` to swap the active service onto the green ReplicaSet. Setting it to
-`true` (or providing `autoPromotionSeconds`) flips automatically once the new
-RS is healthy — useful for non-critical services.
+`autoPromotionEnabled: false` means a human must call `kubectl argo rollouts promote` to swap the active service onto the green ReplicaSet. Setting it to `true` (or providing `autoPromotionSeconds`) flips automatically once the new RS is healthy — useful for non-critical services.
 
 ### 3.3 Deploying Blue-Green
 
@@ -249,36 +219,35 @@ kubectl get rollout,svc -n bluegreen
 
 ### 3.4 Triggering a Green Deployment
 
+Same caveat as 2.3 — `:latest` is already the running image, so trigger a real change with a different tag:
+
 ```powershell
-# Modify the image to deploy a "green" RS alongside the existing "blue"
-kubectl argo rollouts set image devops-info-service `
+kubectl argo rollouts set image devops-info-service-bluegreen `
   devops-info-service=timursalakhov/devops-info-service:latest -n bluegreen
 
-kubectl argo rollouts get rollout devops-info-service -n bluegreen -w
+kubectl argo rollouts get rollout devops-info-service-bluegreen -n bluegreen -w
 ```
 
-The new RS scales up to full replica count while the active RS keeps serving
-production traffic. The Rollout sits in `Paused — BlueGreenPause` until you
-promote.
+The new (green) RS scales up to full replica count while the active (blue) RS keeps serving production traffic. The Rollout sits in `Paused — BlueGreenPause` until you promote.
 
 ### 3.5 Verifying Preview vs Active
 
 In two separate PowerShell terminals:
 
 ```powershell
-# Terminal 1 — production (blue)
-kubectl port-forward svc/devops-info-service -n bluegreen 8080:80
+# Terminal 1 — production (blue / active)
+kubectl port-forward svc/devops-info-service-bluegreen -n bluegreen 8081:80
 ```
 
 ```powershell
 # Terminal 2 — preview (green)
-kubectl port-forward svc/devops-info-service-preview -n bluegreen 8081:80
+kubectl port-forward svc/devops-info-service-bluegreen-preview -n bluegreen 8082:80
 ```
 
 ```powershell
 # Compare /health from both
-curl http://localhost:8080/health
 curl http://localhost:8081/health
+curl http://localhost:8082/health
 ```
 
 ![Blue-Green preview vs active](screenshots/lab14-bluegreen-preview.png)
@@ -286,26 +255,20 @@ curl http://localhost:8081/health
 ### 3.6 Promotion (Instant Cutover)
 
 ```powershell
-kubectl argo rollouts promote devops-info-service -n bluegreen
+kubectl argo rollouts promote devops-info-service-bluegreen -n bluegreen
 ```
 
-The active service's selector is rewritten in a single API call: traffic moves
-from blue to green **instantly**, with no mixed routing window. After
-`scaleDownDelaySeconds` the old RS is scaled to 0.
+The active service's selector is rewritten in a single API call: traffic moves from blue to green **instantly**, with no mixed routing window. After `scaleDownDelaySeconds` the old RS is scaled to 0.
 
 ![Blue-Green promoted](screenshots/lab14-bluegreen-promoted.png)
 
 ### 3.7 Instant Rollback
 
 ```powershell
-kubectl argo rollouts undo devops-info-service -n bluegreen
+kubectl argo rollouts undo devops-info-service-bluegreen -n bluegreen
 ```
 
-`undo` triggers a new blue-green cycle that puts the previous image back on the
-active service. Because the previous RS is still alive (within
-`scaleDownDelaySeconds`) — or scaled back up immediately if past the window —
-the cutover happens within seconds. Compare this to canary, where rolling
-traffic back means draining each weighted step.
+`undo` triggers a new blue-green cycle that puts the previous image back on the active service. Because the previous RS is still alive (within `scaleDownDelaySeconds`) — or scaled back up immediately if past the window — the cutover happens within seconds. Compare this to canary, where rolling traffic back means draining each weighted step.
 
 ![Blue-Green rollback](screenshots/lab14-bluegreen-rollback.png)
 
@@ -360,9 +323,7 @@ traffic back means draining each weighted step.
 
 ### 6.1 AnalysisTemplate
 
-[`templates/analysistemplate.yaml`](devops-info-service/templates/analysistemplate.yaml)
-defines a single `web` provider check that hits the application's `/health`
-endpoint and asserts the JSON body contains `"status": "healthy"`:
+[`templates/analysistemplate.yaml`](devops-info-service/templates/analysistemplate.yaml) defines a single `web` provider check that hits the application's `/health` endpoint and asserts the JSON body contains `"status": "healthy"`:
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -388,15 +349,11 @@ How metrics determine success / failure:
 - `successCondition: result == "healthy"` — each probe must return that value.
 - `failureLimit: 1` — a **single** failed probe ends the run as `Failed`.
 
-When the AnalysisRun ends `Failed`, Argo Rollouts treats it the same as a manual
-`abort`: traffic shifts back to stable and the canary RS is scaled down.
-Prometheus is **not required** here — we use the simpler `web` provider against
-the in-cluster Service.
+When the AnalysisRun ends `Failed`, Argo Rollouts treats it the same as a manual `abort`: traffic shifts back to stable and the canary RS is scaled down. Prometheus is **not required** here — we use the simpler `web` provider against the in-cluster Service.
 
 ### 6.2 Wiring Analysis Into the Canary
 
-[`values-canary-analysis.yaml`](devops-info-service/values-canary-analysis.yaml)
-shortens the canary ladder and enables the analysis hook:
+[`values-canary-analysis.yaml`](devops-info-service/values-canary-analysis.yaml) shortens the canary ladder and enables the analysis hook:
 
 ```yaml
 rollout:
@@ -413,8 +370,7 @@ rollout:
       templateName: success-rate
 ```
 
-The chart appends an `analysis` step at the end of `spec.strategy.canary.steps`
-when `rollout.canary.analysis.enabled: true`:
+The chart appends an `analysis` step at the end of `spec.strategy.canary.steps` when `rollout.canary.analysis.enabled: true`:
 
 ```yaml
 - analysis:
@@ -422,36 +378,82 @@ when `rollout.canary.analysis.enabled: true`:
       - templateName: success-rate
 ```
 
-Deployed via [`k8s/argocd/application-canary-analysis.yaml`](argocd/application-canary-analysis.yaml)
-into a dedicated `canary-demo` namespace.
+Deployed via [`k8s/argocd/application-canary-analysis.yaml`](argocd/application-canary-analysis.yaml) into a dedicated `canary-demo` namespace.
 
 ### 6.3 Demonstrating Auto-Rollback
+
+> Same naming convention as blue-green — in `canary-demo` ns the rollout is `devops-info-service-canary-analysis`, and the AnalysisTemplate is `success-rate`.
+
+#### 6.3.a Successful path (healthy image, analysis passes)
 
 ```powershell
 kubectl apply -f k8s/argocd/application-canary-analysis.yaml
 argocd app sync devops-info-service-canary-analysis
 
-# Healthy rollout: AnalysisRun returns "healthy" -> rollout completes
-kubectl argo rollouts set image devops-info-service `
-  devops-info-service=timursalakhov/devops-info-service:latest -n canary-demo
+# Trigger revision 2 (any tag different from what's already running)
+kubectl argo rollouts set image devops-info-service-canary-analysis devops-info-service=timursalakhov/devops-info-service:latest -n canary-demo
 
-# Force a failure: switch to an image that won't start (or doesn't exist)
-kubectl argo rollouts set image devops-info-service `
-  devops-info-service=timursalakhov/devops-info-service:does-not-exist -n canary-demo
+kubectl argo rollouts get rollout devops-info-service-canary-analysis -n canary-demo -w
+```
 
-kubectl argo rollouts get rollout devops-info-service -n canary-demo -w
+Expected: rollout walks through `setWeight: 33` → 20s pause → `setWeight: 66` → 20s pause → `setWeight: 100` → analysis runs → `/health` returns `"healthy"` → AnalysisRun Successful → rollout completes Healthy.
+
+#### 6.3.b Failure path (analysis fails, auto-rollback)
+
+The reliable way to exercise auto-rollback is to **make the AnalysisTemplate fail**, because using a broken image (e.g. `:does-not-exist`) leaves the canary pods in `ImagePullBackOff` — they never enter the Service's Endpoints, so `/health` keeps being served by the *stable* pods and analysis would actually pass. Patching the success condition forces the analysis to fail even on an otherwise healthy cluster:
+
+```powershell
+# 1. Patch the AnalysisTemplate to expect an impossible value
+@"
+spec:
+  metrics:
+    - name: webcheck
+      provider:
+        web:
+          url: http://devops-info-service-canary-analysis.canary-demo.svc/health
+          jsonPath: "{`$.status}"
+      successCondition: result == "this-will-never-match"
+      interval: 10s
+      count: 3
+      failureLimit: 1
+"@ | Out-File -FilePath .tmp-analysis-fail.yaml -Encoding utf8
+kubectl patch analysistemplate success-rate -n canary-demo --type=merge --patch-file=.tmp-analysis-fail.yaml
+
+# 2. Trigger a real revision change
+kubectl argo rollouts set image devops-info-service-canary-analysis devops-info-service=timursalakhov/devops-info-service:latest -n canary-demo
+
+# 3. Watch — within ~80-90s the AnalysisRun fails and the rollout auto-rolls back
+kubectl argo rollouts get rollout devops-info-service-canary-analysis -n canary-demo -w
 kubectl get analysisruns -n canary-demo
 kubectl describe analysisrun -n canary-demo
 ```
 
-Expected sequence:
-1. Rollout shifts 33% traffic to the new (broken) RS, pauses 20s.
-2. Continues to 66%, pauses 20s.
-3. Continues to 100% — but the AnalysisRun probe hits `/health` on the broken
-   Service, gets a non-`healthy` response (or none), records a failure.
-4. `failureLimit: 1` is reached → AnalysisRun status = `Failed`.
-5. Rollout transitions to `Degraded`, traffic snaps back to the stable RS, the
-   broken RS is scaled to 0.
+Observed sequence (verified end-to-end):
+1. Revision 2 RS spawns with the new image (`canary` role, ~3 pods).
+2. Canary advances: 33% → 20s pause → 66% → 20s pause → 100%.
+3. Analysis step (index 5) fires; `webcheck` probes hit `/health` and read `"healthy"`, but the patched `successCondition` expects `"this-will-never-match"` → 2 of 3 probes recorded as `Failed`.
+4. 2 failures > `failureLimit: 1` → AnalysisRun status `Failed` with message *Metric "webcheck" assessed Failed due to failed (2) > failureLimit (1)*.
+5. Rollout transitions to `Degraded` with `Message: RolloutAborted: ...`. Stable RS scales back to full replica count, canary RS scales to 0.
+
+```powershell
+# 4. Restore the AnalysisTemplate so future demos work
+@"
+spec:
+  metrics:
+    - name: webcheck
+      provider:
+        web:
+          url: http://devops-info-service-canary-analysis.canary-demo.svc/health
+          jsonPath: "{`$.status}"
+      successCondition: result == "healthy"
+      interval: 10s
+      count: 3
+      failureLimit: 1
+"@ | Out-File -FilePath .tmp-analysis-ok.yaml -Encoding utf8
+kubectl patch analysistemplate success-rate -n canary-demo `
+  --type=merge --patch-file=.tmp-analysis-ok.yaml
+Remove-Item .tmp-analysis-fail.yaml, .tmp-analysis-ok.yaml
+```
 
 ![Analysis-driven auto-rollback](screenshots/lab14-analysis-autorollback.png)
 
