@@ -71,6 +71,13 @@ persistence:
   size: 100Mi
   storageClass: ""
 
+statefulSet:
+  enabled: false
+  podManagementPolicy: OrderedReady
+  updateStrategy:
+    type: RollingUpdate
+    partition: 0
+
 rollout:
   strategy: canary
   revisionHistoryLimit: 5
