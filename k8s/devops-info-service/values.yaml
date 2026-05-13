@@ -71,6 +71,20 @@ persistence:
   size: 100Mi
   storageClass: ""
 
+serviceMonitor:
+  enabled: false
+  release: monitoring
+  path: /metrics
+  interval: 15s
+  scrapeTimeout: 10s
+
+statefulSet:
+  enabled: false
+  podManagementPolicy: OrderedReady
+  updateStrategy:
+    type: RollingUpdate
+    partition: 0
+
 rollout:
   strategy: canary
   revisionHistoryLimit: 5
