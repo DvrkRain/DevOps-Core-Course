@@ -1,0 +1,41 @@
+{
+  // Cloudflare Workers configuration for Lab 17.
+  // Docs: https://developers.cloudflare.com/workers/wrangler/configuration/
+  "$schema": "node_modules/wrangler/config-schema.json",
+
+  "name": "edge-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-05-13",
+
+  // Serve the Worker on https://<name>.<your-subdomain>.workers.dev
+  "workers_dev": true,
+
+  // Enables Workers Logs in the Cloudflare dashboard (no sampling).
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  },
+
+  // ---- Task 4.1: plaintext environment variables ----
+  // Safe to commit. Do NOT put secrets here.
+  "vars": {
+    "APP_NAME": "edge-api",
+    "COURSE_NAME": "devops-core"
+  },
+
+  // ---- Task 4.3: Workers KV binding ----
+  // After running `npx wrangler kv namespace create SETTINGS`, replace the
+  // placeholder below with the real `id` printed by the command.
+  "kv_namespaces": [
+    {
+      "binding": "SETTINGS",
+      "id": "0938d409f5e94b169cacc09d704cda4d"
+    }
+  ]
+
+  // ---- Task 4.2: secrets ----
+  // Secrets are NOT listed here. Create them with:
+  //   npx wrangler secret put API_TOKEN
+  //   npx wrangler secret put ADMIN_EMAIL
+  // They appear at runtime on the `env` object (env.API_TOKEN, env.ADMIN_EMAIL).
+}

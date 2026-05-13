@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Local Wrangler state and build artifacts
+.wrangler/
+dist/
+
+# Local secrets (NEVER commit real values)
+.dev.vars
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Generated types (regenerate with `npx wrangler types`)
+worker-configuration.d.ts

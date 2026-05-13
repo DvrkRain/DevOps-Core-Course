@@ -37,3 +37,10 @@ __pycache__/
 
 # Monitoring secrets
 monitoring/.env
+
+# Cloudflare Workers (Lab 17)
+edge-api/node_modules/
+edge-api/.wrangler/
+edge-api/.dev.vars
+edge-api/dist/
+edge-api/worker-configuration.d.ts
