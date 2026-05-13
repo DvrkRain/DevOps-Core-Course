@@ -1,0 +1,26 @@
+replicaCount: 3
+
+statefulSet:
+  enabled: true
+  podManagementPolicy: OrderedReady
+  updateStrategy:
+    type: RollingUpdate
+    partition: 0
+
+service:
+  type: NodePort
+  port: 80
+  targetPort: 5000
+  nodePort: 30080
+
+persistence:
+  enabled: true
+  size: 100Mi
+  storageClass: ""
+
+serviceMonitor:
+  enabled: true
+  release: monitoring
+  path: /metrics
+  interval: 15s
+  scrapeTimeout: 10s
