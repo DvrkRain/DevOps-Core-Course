@@ -1106,27 +1106,3 @@ If I had had a `flake.nix` since Lab 1, the entire Labs 1 → 2 → 3 → 10 cha
 | **Bonus.3** — Cross-machine reproducibility | §B.3 |
 | **Bonus.4** — Dev shell vs `pip + venv` | §B.4 |
 | **Bonus comparison + reflection** — Lab 1 vs Lab 10 vs Lab 18 | §B.5, §B.6 |
-
-### Still to do (only the parts that require my user account / external tooling)
-
-1. **Commit and push the branch** — from PowerShell at the repo root:
-
-   ```powershell
-   git add labs\lab18 labs\submission18.md
-   git commit -m "docs: add lab18 submission - Nix reproducible builds"
-   git push -u origin lab18
-   ```
-
-2. **Open the PR** — `DvrkRain/DevOps-Core-Course@lab18` → course-repo `main`. PR description should follow the template in [labs/lab18.md](lab18.md) §How to Submit:
-
-   ```text
-   Platform: GitHub
-
-   - [x] Task 1 — Build Reproducible Artifacts from Scratch (6 pts)
-   - [x] Task 2 — Reproducible Docker Images with Nix (4 pts)
-   - [x] Bonus Task — Modern Nix with Flakes (2 pts)
-   ```
-
-3. **Submit the PR URL via Moodle** before the deadline.
-
-That's it — every rubric-graded artifact (Nix files, hashes, screenshots, comparison tables, reflections) is already filled in above.
