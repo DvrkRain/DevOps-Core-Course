@@ -1,0 +1,18 @@
+# Lab 18 — force LF on every file the Nix/Bash sandbox executes.
+#
+# Background: editing or `git add`ing these from Windows can otherwise rewrite
+# them with CRLF endings, and Nix's installPhase / docker.nix / shellHook are
+# executed by Bash, which fails with `$'\r': command not found` on CRLF.
+
+* text=auto eol=lf
+
+*.nix       text eol=lf
+*.sh        text eol=lf
+Dockerfile  text eol=lf
+*.py        text eol=lf
+*.toml      text eol=lf
+*.yml       text eol=lf
+*.yaml      text eol=lf
+*.md        text eol=lf
+.gitignore  text eol=lf
+.dockerignore text eol=lf
