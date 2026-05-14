@@ -1,3 +1,4 @@
+{{- if not .Values.statefulSet.enabled }}
 apiVersion: argoproj.io/v1alpha1
 kind: AnalysisTemplate
 metadata:
@@ -15,3 +16,4 @@ spec:
       interval: 10s
       count: 3
       failureLimit: 1
+{{- end }}

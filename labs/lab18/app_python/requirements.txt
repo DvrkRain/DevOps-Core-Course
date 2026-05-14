@@ -1,0 +1,17 @@
+# Web Framework
+fastapi[standard] ~= 0.128.0
+uvicorn[standard] ~= 0.40.0
+
+python-dotenv ~= 1.2.1
+
+# Structured JSON logging
+python-json-logger ~= 3.2.0
+
+# Prometheus metrics
+prometheus-client==0.23.1
+
+# Testing
+pytest ~= 9.0.2
+pytest-cov ~= 7.0.0
+httpx ~= 0.28.1
+ruff ~= 0.15.0
