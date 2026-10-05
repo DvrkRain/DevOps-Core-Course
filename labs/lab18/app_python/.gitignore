@@ -1,0 +1,45 @@
+# ── Nix build outputs ──────────────────────────────────────────────────────────
+result
+result-*
+
+# ── Local data (visit counter) ─────────────────────────────────────────────────
+data/visits
+.data/
+
+# ── Python ─────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.Python
+
+# ── Virtual environments (used for the pip-vs-Nix experiment in Task 1.4) ─────
+venv/
+venv1/
+venv2/
+.venv/
+env/
+ENV/
+freeze1.txt
+freeze2.txt
+requirements-unpinned.txt
+
+# ── Testing ────────────────────────────────────────────────────────────────────
+.coverage
+htmlcov/
+.pytest_cache/
+
+# ── IDE / OS ───────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ── Environment variables ──────────────────────────────────────────────────────
+.env
+.env.local
